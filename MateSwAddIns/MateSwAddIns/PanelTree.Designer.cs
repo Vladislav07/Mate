@@ -47,7 +47,7 @@
             this.AutoSize = true;
             this.Controls.Add(this.lblMessage);
             this.Name = "PanelTree";
-            this.Size = new System.Drawing.Size(393, 306);
+            this.Size = new System.Drawing.Size(571, 364);
             this.ResumeLayout(false);
             this.PerformLayout();
 
