@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{ABF85F93-696A-4412-A3E6-6F3DFEB2B5FE}</ProjectGuid>
+    <ProjectGuid>{9EEB8FA4-148F-40C6-8169-07CD7AD6112E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AddInsMate_01</RootNamespace>
-    <AssemblyName>AddInsMate_01</AssemblyName>
+    <RootNamespace>AddInPageMate</RootNamespace>
+    <AssemblyName>AddInPageMate</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -33,54 +33,50 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CodeStack.SwEx.AddIn, Version=0.8.1.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
-      <HintPath>packages\CodeStack.SwEx.AddIn.0.8.1\lib\net40\CodeStack.SwEx.AddIn.dll</HintPath>
+      <HintPath>..\packages\CodeStack.SwEx.AddIn.0.8.1\lib\net40\CodeStack.SwEx.AddIn.dll</HintPath>
     </Reference>
     <Reference Include="CodeStack.SwEx.Common, Version=0.9.9.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
-      <HintPath>packages\CodeStack.SwEx.Common.0.9.9\lib\net40\CodeStack.SwEx.Common.dll</HintPath>
+      <HintPath>..\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\CodeStack.SwEx.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="CodeStack.SwEx.PMPage, Version=0.7.2.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
+      <HintPath>..\packages\CodeStack.SwEx.PMPage.0.7.2\lib\net40\CodeStack.SwEx.PMPage.dll</HintPath>
     </Reference>
     <Reference Include="SolidWorks.Interop.sldworks, Version=27.1.0.72, Culture=neutral, PublicKeyToken=7c4797c3e4eeac03, processorArchitecture=MSIL">
-      <HintPath>packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.sldworks.dll</HintPath>
+      <HintPath>..\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.sldworks.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="SolidWorks.Interop.swconst, Version=27.1.0.72, Culture=neutral, PublicKeyToken=19f43e188e4269d8, processorArchitecture=MSIL">
-      <HintPath>packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.swconst.dll</HintPath>
+      <HintPath>..\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.swconst.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="SolidWorks.Interop.swpublished, Version=27.1.0.72, Culture=neutral, PublicKeyToken=89a97bdc5284e6d8, processorArchitecture=MSIL">
-      <HintPath>packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.swpublished.dll</HintPath>
+      <HintPath>..\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.swpublished.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="SolidWorksTools, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bd18593873b4686d, processorArchitecture=MSIL">
-      <HintPath>packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorksTools.dll</HintPath>
+      <HintPath>..\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorksTools.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Xarial.VPages.Framework, Version=0.4.0.0, Culture=neutral, PublicKeyToken=6dcec729ca6a1943, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xarial.VPages.Framework.0.4.0\lib\net40\Xarial.VPages.Framework.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainAddIns.cs" />
-    <Compile Include="PanelTree.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="PanelTree.Designer.cs">
-      <DependentUpon>PanelTree.cs</DependentUpon>
-    </Compile>
+    <Compile Include="AddInMain.cs" />
+    <Compile Include="MatePmpHandler.cs" />
+    <Compile Include="Model.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SolidServise.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="PanelTree.resx">
-      <DependentUpon>PanelTree.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
