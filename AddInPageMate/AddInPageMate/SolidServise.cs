@@ -25,6 +25,7 @@ namespace AddInPageMate
     }
     internal class SolidServise
     {
+        ISldWorks sldWorks;
         ModelDoc2 swModel;
         MathUtility utility;
         IModelDocExtension swDocExt;
@@ -36,8 +37,21 @@ namespace AddInPageMate
         Mate2 swMate;
         int mateError;
         string nameAssemble;
+<<<<<<< HEAD
 
         public bool AddPairingMultyComp(Model model)
+=======
+        Model model;
+        public SolidServise(ISldWorks _sldWorks, Model _model)
+        {
+            sldWorks = _sldWorks;
+            model = _model;
+            swModel = (ModelDoc2)sldWorks.ActiveDoc;
+            swAssemblyDoc = (AssemblyDoc)swModel;
+            utility=(MathUtility)sldWorks.GetMathUtility();
+        }
+        public bool AddPairingMultyComp(string[] list)
+>>>>>>> fed775a50a1e879f038674f6e146bbff8ef68bcb
         {
             PlaneName pn;
             double ScaleOutb = 0;

@@ -1,0 +1,320 @@
+
+Option Explicit
+
+   Public Fliped As Boolean
+   Public Align As swMateAlign_e
+   Public dist As Double
+   Public baseComp As SldWorks.Feature
+   Public childComp As SldWorks.Feature
+   Public comp As ModelDoc2
+   Public basePlaneName As String
+   Public childPlaneName As String
+   Public typeMate As swMateType_e
+
+
+----------------------------------------------------------
+
+
+Option Explicit
+    Dim swApp As Object
+    Dim swModel As SldWorks.ModelDoc2
+    Dim swSelMgr As SldWorks.SelectionMgr
+    Dim swComponent As SldWorks.Component2
+    Dim boolstat As Boolean
+    Dim swDocExt As ModelDocExtension
+    Dim swAssemblyDoc As SldWorks.assemblyDoc
+    Dim nameAssemble As String
+    Dim plane(2) As Integer
+    Dim instance As swRefPlaneReferenceIndex_e
+
+Sub initial()
+    Dim swMathUtil As SldWorks.MathUtility
+    Dim vXform As Variant
+    Dim listVecor(2) As MathVector
+    Dim nChild As String
+    Dim swTrChild As MathTransform
+    Dim coord() As Double
+    Dim listLocComp As Collection
+    Dim swModelChild As SldWorks.ModelDoc2
+    
+    Dim ScaleOutb As Double
+    Dim Xch As MathVector
+    Dim Ych As MathVector
+    Dim Zch As MathVector
+    Dim TrObjOutch As MathVector
+    Dim ScaleOutch As Double
+    
+   
+   
+    'Set instance = swRefPlaneReferenceIndex_e.swRefPlaneReference_First
+    
+    plane(0) = 0 ' "Ñïðàâà"
+    plane(1) = 1 '"Ñâåðõó"
+    plane(2) = 2 '"Ñïåðåäè"
+    
+    
+    Set swApp = Application.SldWorks
+    Set swMathUtil = swApp.GetMathUtility()
+    Set swModel = swApp.ActiveDoc
+    Set swDocExt = swModel.Extension
+    Set swSelMgr = swModel.ISelectionManager
+    
+    ScaleOutb = 0
+    Set Xch = Nothing
+    Set Ych = Nothing
+    Set Zch = Nothing
+    Set TrObjOutch = Nothing
+    ScaleOutch = 0
+    
+    If swModel.GetType() <> swDocumentTypes_e.swDocASSEMBLY Then
+      MsgBox "Òîëüêî äëÿ ñáîðêè"
+      Exit Sub
+    End If
+    Set swAssemblyDoc = swModel
+    nameAssemble = GetNameAssemble(swAssemblyDoc)
+    
+    Set swSelMgr = swModel.SelectionManager
+    Set swComponent = swSelMgr.GetSelectedObject6(1, -1)
+    'If (Not IsEmpty(swComponent)) Then
+     ' MsgBox "Âûáåðèòå êîìïîíåíò"
+     ' Exit Sub
+    'End If
+    nChild = swComponent.Name2
+    Set swModelChild = swComponent.GetModelDoc2()
+    Set swTrChild = swComponent.Transform2
+    swTrChild.IGetData Xch, Ych, Zch, TrObjOutch, ScaleOutch
+
+    Set listVecor(0) = Xch
+    Set listVecor(1) = Ych
+    Set listVecor(2) = Zch
+    
+    coord = TrObjOutch.ArrayData
+    
+    Set listLocComp = New Collection
+    Dim i As Integer
+    Dim count As Integer
+    Dim l As LocationComponent
+    'Set l.baseComp = Nothing
+    'Set l.childComp = Nothing
+     For i = 0 To 2
+        Set l = New LocationComponent
+        Set l.baseComp = GetPlane(swModel, plane(i))
+        l.basePlaneName = l.baseComp.name
+        Set l.comp = swModelChild
+        l.dist = Math.Abs(Math.Round(coord(i), 3))
+        IsFlipedAndAlign l, listVecor(i), coord(i)
+        listLocComp.Add l
+     Next i
+     
+        'DeletingMateComp swComponent
+        AddMate listLocComp
+End Sub
+
+Sub IsFlipedAndAlign(loc As LocationComponent, vector As MathVector, coord As Double)
+    Dim orientation As Variant
+    Dim temp As Double
+    Dim i As Integer
+    orientation = vector.ArrayData
+    
+    For i = 0 To 2
+       
+        temp = Math.Round(orientation(i))
+        'loc.childPlaneName = loc.childComp.name
+        Select Case temp
+          Case 1
+            Set loc.childComp = GetPlane(loc.comp, plane(i))
+            
+            If (coord > 0) Then
+                loc.Fliped = True
+            Else
+                loc.Fliped = False
+            
+            End If
+            loc.Align = swMateAlign_e.swMateAlignALIGNED
+            loc.typeMate = swMateType_e.swMateDISTANCE
+            
+          Case -1
+            Set loc.childComp = GetPlane(loc.comp, plane(i))
+            If (coord > 0) Then
+                loc.Fliped = False
+            Else
+                loc.Fliped = True
+            
+            End If
+            loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED
+            loc.typeMate = swMateType_e.swMateDISTANCE
+            
+          Case 0.001 To 0.099
+            'Set loc.childComp =
+            If (coord > 0) Then
+                loc.Fliped = True
+            Else
+                loc.Fliped = False
+            End If
+            loc.Align = swMateAlign_e.swMateAlignALIGNED
+            loc.typeMate = swMateType_e.swMateDISTANCE
+            
+          Case -0.099 To -0.001
+            'Set loc.childComp =
+            If (coord > 0) Then
+                loc.Fliped = False
+            Else
+                loc.Fliped = True
+            
+            End If
+            loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED
+            loc.typeMate = swMateType_e.swMateDISTANCE
+            
+          Case Else
+          
+        End Select
+
+    Next i
+      
+End Sub
+
+ Public Function AddMate(orientation As Collection)
+
+   Dim locComp As LocationComponent
+    For Each locComp In orientation
+      AddMateToAssemble locComp
+    Next
+ End Function
+        
+        
+     Function AddMateToAssemble(orientation As LocationComponent)
+        Dim planeBase As Feature
+        Dim planeChild As Feature
+        Dim flipped As Boolean
+        Dim Align As swMateAlign_e
+        Dim distance As Double
+        Dim mateError As Long
+        
+        Set planeBase = orientation.baseComp
+        Debug.Print planeBase.name
+        Set planeChild = orientation.childComp
+         Debug.Print planeChild.name
+        flipped = orientation.Fliped
+        Align = orientation.Align
+        distance = orientation.dist
+        Dim MateName As String
+        Dim matefeature As Mate2
+        
+        'FirstSelection = planePart & "@" & orientation.childComp
+        'SecondSelection = planeCoord & "@" & orientation.baseComp
+        'MateName = planeCoord
+        swModel.ClearSelection2 (True)
+     
+        'swSelMgr.DeSelect2(
+        'boolstat = swDocExt.SelectByID2(FirstSelection, "PLANE", 0, 0, 0, True, 1, Nothing, swSelectOption_e.swSelectOptionDefault)
+        'boolstat = swDocExt.SelectByID2(SecondSelection, "PLANE", 0, 0, 0, True, 1, Nothing, swSelectOption_e.swSelectOptionDefault)
+       
+         Dim ret As Long
+        'ret = swSelMgr.SuspendSelectionList
+       ' Debug.Print "The current selection list with " & ret & " object (Sketch2) is suspended."
+        boolstat = planeBase.Select2(False, 1)
+       ' boolstat = planeChild.Select2(True, 2)
+        '--------------------
+        
+        Dim countObject As Integer
+        
+        ' Start a new selection list
+        'ret = swSelMgr.SuspendSelectionList
+        'Debug.Print "The current selection list with " & ret & " object (Sketch2) is suspended."
+        countObject = swSelMgr.GetSelectedObjectCount2(0)
+        Debug.Print countObject
+        '---------------
+        Set matefeature = swAssemblyDoc.AddMate3(swMateType_e.swMateDISTANCE, Align, flipped, distance, distance, distance, 0, 0, 0, 0, 0, False, mateError)
+        'Debug.Print orientation.basePlaneName
+        'Debug.Print orientation.childPlaneName
+    
+        Debug.Print mateError
+        swAssemblyDoc.EditRebuild
+     End Function
+     
+      
+      Function GetNameAssemble(assemblyDoc As SldWorks.ModelDoc2) As String
+          Dim strings As Variant
+          Dim assemblyTitle As String
+          assemblyTitle = swModel.GetTitle
+          strings = Split(assemblyTitle, ".")
+          GetNameAssemble = strings(0)
+      End Function
+      
+          
+     Sub DeletingMateComp(swComp As Component2)
+           
+       Dim Mates As Variant
+       Dim SingleMate As Variant
+       Dim swMate As SldWorks.Mate2
+       Dim nameMate As String
+       Dim boolstat As Boolean
+       
+        Mates = swComp.GetMates()
+        If (Not IsEmpty(Mates)) Then
+        For Each SingleMate In Mates
+            If TypeOf SingleMate Is SldWorks.Mate2 Then
+                Set swMate = SingleMate
+                nameMate = SingleMate.name
+                swModel.ClearSelection2 (True)
+                boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, True, 1, Nothing, swSelectOption_e.swSelectOptionDefault)
+                swModel.EditDelete
+            End If
+         Next
+        End If
+    End Sub
+    
+
+Public Sub GetDataMath(m As MathTransform)
+    Dim ScaleOutb As Double
+    Dim Xch As MathVector
+    Dim Ych As MathVector
+    Dim Zch As MathVector
+    Dim TrObjOutch As MathVector
+    Dim ScaleOutch As Double
+    Dim coord As Variant
+    Dim listVecor(3) As MathVector
+    
+    ScaleOutb = 0
+    Set Xch = Nothing
+    Set Ych = Nothing
+    Set Zch = Nothing
+    Set TrObjOutch = Nothing
+    ScaleOutch = 0
+
+     m.IGetData2 Xch, Ych, Zch, TrObjOutch, ScaleOutch
+    Set listVecor(0) = Xch
+    Set listVecor(1) = Ych
+    Set listVecor(2) = Zch
+    coord = TrObjOutch.ArrayData
+  
+End Sub
+
+
+
+
+
+Public Function GetPlane(model As ModelDoc2, PlaneCount As Integer) As SldWorks.Feature
+  Dim swFeat As SldWorks.Feature
+  Dim ReqPlane As Integer
+  Dim refPlane As SldWorks.refPlane
+  Dim bRet As Boolean
+  'Debug.Print model.GetPathName
+  Set swFeat = model.FirstFeature
+  ReqPlane = 0
+    Do While Not swFeat Is Nothing
+        If "RefPlane" = swFeat.GetTypeName Then
+        
+          If ReqPlane = PlaneCount Then
+             Debug.Print swFeat.name
+             bRet = swFeat.Select2(True, 0)
+             Set refPlane = swFeat.GetSpecificFeature2
+             Set GetPlane = swFeat 'refPlane
+            Exit Do
+           End If
+          ReqPlane = ReqPlane + 1
+       End If
+
+        Set swFeat = swFeat.GetNextFeature
+    Loop
+End Function
