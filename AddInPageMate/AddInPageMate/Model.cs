@@ -38,17 +38,11 @@ namespace AddInPageMate
         public bool Top { get; set; }
         [ControlTag(nameof(Left))]
         public bool Left { get; set; }
-        public Action CreateMate => OnBtnClick;
+       /* public Action CreateMate => OnBtnClick;
         private void OnBtnClick()
         {
-            if (components.Count != 0)
-            {
-                foreach (Component2 item in components)
-                {
-                    Debug.Write(item.Name2);
-                }
-
-            }
-        }
+            if (components.Count == 0 || baseComp == null) return;
+            SolidServise solidServise = new SolidServise(this);
+        }*/
     }
 }
