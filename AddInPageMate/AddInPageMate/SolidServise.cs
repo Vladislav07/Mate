@@ -37,7 +37,7 @@ namespace AddInPageMate
         int mateError;
         string nameAssemble;
 
-        public bool AddPairingMultyComp(string[] list)
+        public bool AddPairingMultyComp(Model model)
         {
             PlaneName pn;
             double ScaleOutb = 0;
@@ -47,16 +47,18 @@ namespace AddInPageMate
             MathVector TrObjOutch = null;
             double ScaleOutch = 0;
 
-            string nBaseRignt = list[1];
+            string nBaseRignt = PlaneName.Right.ToString();
             // string nBaseUp = GetName(list[1]);
             // string nBaseLeft = GetName(list[2]);
-            string nChild = GetName(list[3]);
+           // string nChild = GetName(list[3]);
             //  string nameAssemble;
             Component2 compChild;
 
             List<LocationComponent> listLocComp = new List<LocationComponent>();
+            compChild=(Component2)model.components[0];
+            string nChild = compChild.Name2;
+            // compChild = (Component2)swAssemblyDoc.GetComponentByName(nChild);
 
-            compChild = (Component2)swAssemblyDoc.GetComponentByName(nChild);
             MathTransform swTrChild = (MathTransform)compChild.Transform2;
 
             MathTransform MtrInvPlaneBase = (MathTransform)GetMathTrsPlaneBase(nBaseRignt);
