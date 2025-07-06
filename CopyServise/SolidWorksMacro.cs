@@ -77,6 +77,7 @@ namespace CopyServise
         {
             // service.AddPairing(obj);
             bool st = service.AddPairingMultyComp(obj);
+
         }
 
         public SldWorks swApp;

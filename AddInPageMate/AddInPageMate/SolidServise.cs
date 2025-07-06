@@ -13,6 +13,7 @@ namespace AddInPageMate
         public bool Fliped;
         public swMateAlign_e Align;
         public string PlanComp;
+        public string PlanBaseComp;
         public double dist;
         public string baseComp;
         public string childComp;
@@ -21,7 +22,7 @@ namespace AddInPageMate
     {
         Right = 0,
         Top = 1,
-        Left = 2
+        Front = 2
     }
     internal class SolidServise
     {
@@ -37,69 +38,106 @@ namespace AddInPageMate
         Mate2 swMate;
         int mateError;
         string nameAssemble;
-<<<<<<< HEAD
+        Component2 swRootComp;
 
-        public bool AddPairingMultyComp(Model model)
-=======
+
+
         Model model;
-        public SolidServise(ISldWorks _sldWorks, Model _model)
+        public SolidServise(ISldWorks _sldWorks)
         {
             sldWorks = _sldWorks;
-            model = _model;
             swModel = (ModelDoc2)sldWorks.ActiveDoc;
             swAssemblyDoc = (AssemblyDoc)swModel;
             utility=(MathUtility)sldWorks.GetMathUtility();
+            nameAssemble= GetNameAssemble(swAssemblyDoc);
+            swDocExt = swModel.Extension;
+            swSelMgr = (SelectionMgr)swModel.SelectionManager;
+
+            ConfigurationManager swConfMgr;
+            Configuration swConf;
+       
+       
+            swConfMgr = (ConfigurationManager)swModel.ConfigurationManager;
+            swConf = (Configuration)swConfMgr.ActiveConfiguration;
+            swRootComp = (Component2)swConf.GetRootComponent();
         }
-        public bool AddPairingMultyComp(string[] list)
->>>>>>> fed775a50a1e879f038674f6e146bbff8ef68bcb
+        public bool AddPairingMultyComp(Model model)
+
         {
-            PlaneName pn;
-            double ScaleOutb = 0;
-            MathVector Xch = null;
-            MathVector Ych = null;
-            MathVector Zch = null;
-            MathVector TrObjOutch = null;
-            double ScaleOutch = 0;
+            List<Component2> childrens = model.components;
+            Component2 baseComp=(Component2)model.baseComp;
 
-            string nBaseRignt = PlaneName.Right.ToString();
-            // string nBaseUp = GetName(list[1]);
-            // string nBaseLeft = GetName(list[2]);
-           // string nChild = GetName(list[3]);
-            //  string nameAssemble;
-            Component2 compChild;
-
-            List<LocationComponent> listLocComp = new List<LocationComponent>();
-            compChild=(Component2)model.components[0];
-            string nChild = compChild.Name2;
-            // compChild = (Component2)swAssemblyDoc.GetComponentByName(nChild);
-
-            MathTransform swTrChild = (MathTransform)compChild.Transform2;
-
-            MathTransform MtrInvPlaneBase = (MathTransform)GetMathTrsPlaneBase(nBaseRignt);
-
-
-            MathTransform compInNewSKR = (MathTransform)swTrChild.Multiply(MtrInvPlaneBase);
-
-            compInNewSKR.IGetData2(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
-            MathVector[] listVecor = new MathVector[3];
-            listVecor[0] = Xch;
-            listVecor[1] = Ych;
-            listVecor[2] = Zch;
-
-            double[] coord = (double[])TrObjOutch.ArrayData;
-
-            for (int i = 0; i < 1; i++)
+            foreach (Component2 item in childrens)
             {
-                LocationComponent l = new LocationComponent();
-                l.baseComp = nBaseRignt + "@" + nameAssemble;
-                l.childComp = nChild + "@" + nameAssemble;
-                l = IsFlipedAndAlign(l, listVecor[i], coord[i]);
-                l.dist = Math.Abs(Math.Round(coord[i], 3));
-                listLocComp.Add(l);
+                Component2 compChild = item;
+                MathTransform swTrChild = (MathTransform)compChild.Transform2;
+                MathTransform swTrCommand;
+                string nChild = compChild.Name2 + "@" + nameAssemble;
+
+                string bChild;
+
+                if (baseComp != null)
+                {
+                    MathTransform MtrInvPlaneBase = (MathTransform)baseComp.Transform2;
+                    MathTransform compInNewSKR = (MathTransform)swTrChild.Multiply(MtrInvPlaneBase.Inverse());
+                    bChild = baseComp.Name2 + "@" + nameAssemble;
+                    swTrCommand = compInNewSKR;
+                }
+                else
+                {
+                    swTrCommand = swTrChild;
+                    bChild = nameAssemble;
+                }
+
+
+                PlaneName pn;
+                double ScaleOutb = 0;
+                Object Xch = null;
+                Object Ych = null;
+                Object Zch = null;
+                Object TrObjOutch = null;
+                double ScaleOutch = 0;
+
+                swTrCommand.GetData(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
+                MathVector[] listVecor = new MathVector[3];
+                listVecor[0] = (MathVector)Xch;
+                listVecor[1] = (MathVector)Ych;
+                listVecor[2] = (MathVector)Zch;
+
+              
+
+                double[] coord = (double[])((MathVector)TrObjOutch).ArrayData;
+                PlaneName planeBase = PlaneName.Right;
+
+                List<LocationComponent> listLocComp = new List<LocationComponent>();
+                for (int i = 0; i < 3; i++)
+                {
+                    LocationComponent l = new LocationComponent();
+                    l.baseComp = bChild;
+                    l.childComp = nChild;
+                    l.PlanBaseComp = planeBase.ToString();
+                    l = IsFlipedAndAlign(l, listVecor[i], coord[i]);
+                    l.dist = Math.Abs(Math.Round(coord[i], 3));
+                    listLocComp.Add(l);
+                }
+                DeletingMateComp(compChild);
+                AddMate(listLocComp);
             }
-            DeletingMateComp(compChild);
-            AddMate(listLocComp);
             return true;
+        }
+        private MathTransform CreateRootMathTr()
+        {
+            double[] arr=new double[15];
+
+            arr[0] = 1;   arr[1] = 0;  arr[2] = 0;
+            arr[3] = 0;   arr[4] = 1;  arr[5]=0;
+            arr[6] = 0;   arr[7] = 0;  arr[8] = 1;
+            arr[9] = 0;   arr[10] = 0; arr[11] = 0;
+            arr[12] = 1;
+            arr[13] = 0;  arr[14] = 0; arr[15] = 0;
+            MathTransform m = (MathTransform)utility.CreateTransform(arr);
+            return m;
+
         }
         private string GetName(string str)
         {
@@ -107,7 +145,7 @@ namespace AddInPageMate
             string temp = str.Substring(0, pos);
             return temp;
         }
-        private MathTransform GetMathTrsPlaneBase(string nBase)
+        private MathTransform GetMathTrsPlaneBase(Component nBase)
         {
             boolstat = swDocExt.SelectByID2(nBase + "@" + nameAssemble, "PLANE", 0, 0, 0, false, 0, null, (int)swSelectOption_e.swSelectOptionDefault);
             Feature swFeature = (Feature)swSelMgr.GetSelectedObject6(1, -1);
@@ -115,24 +153,48 @@ namespace AddInPageMate
             RefPlaneFeatureData p = (RefPlaneFeatureData)swFeature.GetDefinition();
             double d = (double)p.Distance;
             MathTransform m = swRefPlane.Transform;
+            double ScaleOutb = 0;
+            MathVector Xch = null;
+            MathVector Ych = null;
+            MathVector Zch = null;
+            MathVector TrObjOutch = null;
+            double ScaleOutch = 0;
+            m.IGetData2(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
             double[] dOrigPt = new double[] { 0, 0, 0 };
             MathPoint point = (MathPoint)utility.CreatePoint((object)dOrigPt);
             point = (MathPoint)point.MultiplyTransform(m);
             double[] pointsArray = new double[3];
             pointsArray = (double[])point.ArrayData;
-            return m;
+
+            return (MathTransform)m;
+        }
+        private MathTransform GetMathTrsBase(Component2 comp)
+        {
+            
+            MathTransform m = (MathTransform)comp.Transform2;
+            double ScaleOutb = 0;
+            MathVector Xch = null;
+            MathVector Ych = null;
+            MathVector Zch = null;
+            MathVector TrObjOutch = null;
+            double ScaleOutch = 0;
+           // m.IGetData2(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
+            
+            return (MathTransform)m;
         }
         private LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord)
         {
             PlaneName plane = PlaneName.Right;
             double[] orientation = (double[])vector.ArrayData;
+            if (Math.Abs(Math.Round(coord * 1000)) < 1) coord = 0;
+
             double temp;
             for (int i = 0; i < 3; i++, plane++)
-            {
+            {       
+                    temp = Math.Round(orientation[i]);
 
-                temp = Math.Round(orientation[i]);
                 if (temp == 1)
-                {
+                { 
                     loc.PlanComp = plane.ToString();
                     if (coord > 0)
                     {
@@ -185,7 +247,7 @@ namespace AddInPageMate
 
                         swModel.ClearSelection2(true);
                         boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
-                        swModel.EditDelete();
+                        swModel.EditSuppress2();
                     }
                 }
             }
@@ -216,7 +278,12 @@ namespace AddInPageMate
             swModel.ClearSelection2(true);
             boolstat = swDocExt.SelectByID2(FirstSelection, "PLANE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
             boolstat = swDocExt.SelectByID2(SecondSelection, "PLANE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+
             matefeature = (Feature)swAssemblyDoc.AddMate3((int)swMateType_e.swMateDISTANCE, (int)align, flipped, distance, distance, distance, 0, 0, 0, 0, 0, false, out mateError);
+            if(matefeature == null)
+            {
+                Console.WriteLine(mateError.ToString());
+            }
             matefeature.Name = MateName;
             swAssemblyDoc.EditRebuild();
 
@@ -226,10 +293,198 @@ namespace AddInPageMate
             string AssemblyTitle;
             string AssemblyName;
             AssemblyTitle = swModel.GetTitle();
-            int index = AssemblyTitle.LastIndexOf('.');
-            int len = AssemblyTitle.Length;
-            AssemblyName = AssemblyTitle.Substring(0, index);
-            return AssemblyName;
+            //   int index = AssemblyTitle.LastIndexOf('.');
+            //  int len = AssemblyTitle.Length;
+            //  AssemblyName = AssemblyTitle.Substring(0, index);
+            return AssemblyTitle;       //AssemblyName;
+        }
+        public List<string> listPlaneComp(string namePlane, string nameComp)
+        {
+            nameComp = nameComp.Substring(0, nameComp.IndexOf('@'));
+            Component2 comp = (Component2)swAssemblyDoc.GetComponentByName(nameComp);
+            ModelDoc2 modelComp = (ModelDoc2)comp.GetModelDoc();
+            List<string> listPlane = new List<string>();
+            Feature f = (Feature)modelComp.FirstFeature();
+
+            do
+            {
+                if (f.GetTypeName2() == "RefPlane")
+                {
+                    RefPlane plane = (RefPlane)f.GetSpecificFeature2();
+                    MathTransform planeMatr = plane.Transform;
+                    if (namePlane == "Спереди")
+                    {
+                        int i = 1;
+                    }
+                    double[] coordPlane = (double[])planeMatr.ArrayData;
+                    string nameP = f.Name + "@" + nameComp;
+                    switch (namePlane)
+                    {
+                        case "Справа":
+                            if (Math.Abs(coordPlane[2]) == 1 && Math.Abs(coordPlane[4]) == 1 && Math.Abs(coordPlane[6]) == 1)
+                            {
+
+                                listPlane.Add(nameP);
+                                try
+                                {
+                                    planes.Add(nameP, plane);
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            break;
+                        case "Сверху":
+                            if (Math.Abs(coordPlane[0]) == 1 && Math.Abs(coordPlane[5]) == 1 && Math.Abs(coordPlane[7]) == 1)
+                            {
+                                listPlane.Add(nameP);
+                                try
+                                {
+                                    planes.Add(nameP, plane);
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            break;
+                        case "Спереди":
+                            if (Math.Abs(coordPlane[0]) == 1 && Math.Abs(coordPlane[4]) == 1 && Math.Abs(coordPlane[8]) == 1)
+                            {
+                                listPlane.Add(nameP);
+                                try
+                                {
+                                    planes.Add(nameP, plane);
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                f = (Feature)f.GetNextFeature();
+            } while (f != null);
+            return listPlane;
+        }
+
+        public List<string> listPlane(string namePlane)
+        {
+            List<string> listPlane = new List<string>();
+
+            Feature f = (Feature)swModel.FirstFeature();
+
+            do
+            {
+                if (f.GetTypeName2() == "RefPlane")
+                {
+                    RefPlane plane = (RefPlane)f.GetSpecificFeature2();
+                    MathTransform planeMatr = plane.Transform;
+                    if (namePlane == "Спереди")
+                    {
+                        int i = 1;
+                    }
+                    double[] coordPlane = (double[])planeMatr.ArrayData;
+                    switch (namePlane)
+                    {
+                        case "Справа":
+                            if (Math.Abs(coordPlane[2]) == 1 && Math.Abs(coordPlane[4]) == 1 && Math.Abs(coordPlane[6]) == 1)
+                            {
+                                listPlane.Add(f.Name);
+                                try
+                                {
+                                    planes.Add(f.Name, plane);
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            break;
+                        case "Сверху":
+                            if (Math.Abs(coordPlane[0]) == 1 && Math.Abs(coordPlane[5]) == 1 && Math.Abs(coordPlane[7]) == 1)
+                            {
+                                listPlane.Add(f.Name);
+                                try
+                                {
+                                    planes.Add(f.Name, plane);
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            break;
+                        case "Спереди":
+                            if (Math.Abs(coordPlane[0]) == 1 && Math.Abs(coordPlane[4]) == 1 && Math.Abs(coordPlane[8]) == 1)
+                            {
+                                listPlane.Add(f.Name);
+                                try
+                                {
+                                    planes.Add(f.Name, plane);
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                f = (Feature)f.GetNextFeature();
+            } while (f != null);
+            return listPlane;
+        }
+
+        public bool AddPairing(string[] list)
+        {
+            PlaneName pn;
+            List<LocationComponent> listLocComp = new List<LocationComponent>();
+
+            string nameAssemble = GetNameAssemble(swAssemblyDoc);
+
+            double ScaleOutb = 0;
+            MathVector Xch = null;
+            MathVector Ych = null;
+            MathVector Zch = null;
+            MathVector TrObjOutch = null;
+            double ScaleOutch = 0;
+
+            string nBase = GetName(list[0]);
+            string nChild = GetName(list[1]);
+
+            Component2 compBase = (Component2)swAssemblyDoc.GetComponentByName(nBase);
+            Component2 compChild = swAssemblyDoc.GetComponentByName(nChild);
+
+            MathTransform swTrBase = compBase.Transform2;
+            MathTransform swTrChild = compChild.Transform2;
+
+            MathTransform inverse = (MathTransform)swTrBase.Inverse();
+            MathTransform compInNewSKR = (MathTransform)swTrChild.Multiply(inverse);
+
+
+            compInNewSKR.IGetData2(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
+            MathVector[] listVecor = new MathVector[3];
+            listVecor[0] = Xch;
+            listVecor[1] = Ych;
+            listVecor[2] = Zch;
+
+            double[] coord = (double[])TrObjOutch.ArrayData;
+            for (int i = 0; i < 3; i++)
+            {
+
+                LocationComponent l = new LocationComponent();
+                l.baseComp = nBase + "@" + nameAssemble;
+                l.childComp = nChild + "@" + nameAssemble;
+                l = IsFlipedAndAlign(l, listVecor[i], coord[i]);
+                l.dist = Math.Abs(Math.Round(coord[i], 3));
+                listLocComp.Add(l);
+            }
+            DeletingMateComp(compChild);
+            AddMate(listLocComp);
+            return true;
         }
     }
 }

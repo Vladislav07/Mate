@@ -47,7 +47,8 @@ namespace AddInPageMate
         private void Handler_Closing(swPropertyManagerPageCloseReasons_e reason, CodeStack.SwEx.PMPage.Base.ClosingArg arg)
         {
             ISldWorks sldWorks = (ISldWorks)App;
-            SolidServise ss = new SolidServise(sldWorks, model);
+            SolidServise ss = new SolidServise(sldWorks);
+            ss.AddPairingMultyComp(model);
         }
 
         private void Handler_Closed(swPropertyManagerPageCloseReasons_e reason)

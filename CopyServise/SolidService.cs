@@ -410,10 +410,10 @@ namespace CopyServise
             string AssemblyTitle;
             string AssemblyName;
             AssemblyTitle = swModel.GetTitle();
-            int index = AssemblyTitle.LastIndexOf('.');
-            int len = AssemblyTitle.Length;
-            AssemblyName = AssemblyTitle.Substring(0, index);
-            return AssemblyName;
+           // int index = AssemblyTitle.LastIndexOf('.');
+           // int len = AssemblyTitle.Length;
+           // AssemblyName = AssemblyTitle.Substring(0, index);
+            return AssemblyTitle;
         }
 
     }

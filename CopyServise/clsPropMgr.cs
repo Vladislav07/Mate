@@ -290,7 +290,7 @@ namespace CopyServise
         void IPropertyManagerPage2Handler9.AfterActivation()
         {
 
-            throw new Exception("The method or operation is not implemented.");
+           // throw new Exception("The method or operation is not implemented.");
 
         }
 

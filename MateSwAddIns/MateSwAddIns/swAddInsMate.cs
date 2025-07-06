@@ -86,9 +86,34 @@ namespace MateSwAddIns
             double angleY = Math.Atan2(-rotationMatrix[6], Math.Sqrt(Math.Pow(rotationMatrix[7], 2) + Math.Pow(rotationMatrix[8], 2))); // Угол вокруг оси Y
             double angleZ = Math.Atan2(rotationMatrix[3], rotationMatrix[0]); // Угол вокруг оси Z
             double k = 180 / Math.PI;
-            String msg = swComponent.Name2;
-             msg = msg + "Смещение: X={0},Y={1}, Z={2},\n" + offsetX*1000 + "\n" + offsetY*1000 + "\n" + offsetZ*1000 + "\n";
+            String msg = swComponent.Name2 +"\n";
+            msg = msg + rotationMatrix[0] +":"+ rotationMatrix[1] + ":"+rotationMatrix[2] + "\n ";
+            msg = msg + rotationMatrix[3] + ":" + rotationMatrix[4] + ":"+rotationMatrix[5] + "\n ";
+            msg = msg + rotationMatrix[6] + ":" + rotationMatrix[7] + ":"+rotationMatrix[8] + "\n ";
+            msg = msg + "Смещение: X={0},Y={1}, Z={2},\n" + offsetX*1000 + "\n" + offsetY*1000 + "\n" + offsetZ*1000 + "\n";
             msg=msg + "Углы: X={0}, Y={1}, Z={2}" + "\n" + k*angleX + "\n" + k*angleY + "\n" + k * angleZ;
+
+            double ScaleOutb = 0;
+            Object Xch = null;
+            Object Ych = null;
+            Object Zch = null;
+            Object TrObjOutch = null;
+            double ScaleOutch = 0;
+
+            transform.GetData(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
+            MathVector[] listVecor = new MathVector[3];
+            listVecor[0] = (MathVector)Xch;
+            listVecor[1] =(MathVector) Ych;
+            listVecor[2] = (MathVector)Zch;
+            double[] orientationX= (double[])listVecor[0].ArrayData;
+            double[] orientationY= (double[])listVecor[1].ArrayData;
+            double[] orientationZ = (double[])listVecor[2].ArrayData;
+            msg = msg + orientationX[0] + ":" + orientationX[1] + ":" + orientationX[2] + "\n ";
+            msg = msg + orientationY[0] + ":" + orientationY[1] + ":" + orientationY[2] + "\n ";
+            msg = msg + orientationZ[0] + ":" + orientationZ[1] + ":" + orientationZ[2] + "\n ";
+            msg = msg + translation[0] + ":" + translation[1] + ":" + translation[2] + "\n ";
+            msg = msg + translation[3] + ":" + translation[4] + ":" + translation[5] + "\n ";
+            msg = msg + translation[6] + ":" + translation[7] + ":" + translation[8] + "\n ";
             ctrl.lblMessage.Text = msg;
         }
 

@@ -10,7 +10,10 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.ComponentModel;
 using System.Diagnostics;
-namespace AddInPageMate
+using CodeStack.SwEx.PMPage;
+using CodeStack.SwEx.Common;
+
+namespace MacroTest
 {
 
 
@@ -22,27 +25,27 @@ namespace AddInPageMate
     [System.ComponentModel.DisplayName("Component selection page")]
     public class Model
     {
-        [SelectionBox(swSelectType_e.swSelCOMPONENTS)]
-        [Description("Components")]
-        [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
-        public List<Component2> components { get; set; } = new List<Component2>();
+       // [SelectionBox(swSelectType_e.swSelCOMPONENTS)]
+      //  [Description("Components")]
+      //  [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
+      //  public List<Component2> components { get; set; } = new List<Component2>();
 
         [SelectionBox(swSelectType_e.swSelCOMPONENTS)]
         [Description("BaseComponent")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
         public IComponent2 baseComp { get; set; }
 
-        [ControlTag(nameof(Right))]
+       // [ControlTag(nameof(Right))]
         public bool Right { get; set; }
-        [ControlTag(nameof(Top))]
+      //  [ControlTag(nameof(Top))]
         public bool Top { get; set; }
-        [ControlTag(nameof(Left))]
+       // [ControlTag(nameof(Left))]
         public bool Left { get; set; }
-       /* public Action CreateMate => OnBtnClick;
-        private void OnBtnClick()
-        {
-            if (components.Count == 0 || baseComp == null) return;
-            SolidServise solidServise = new SolidServise(this);
-        }*/
+        /* public Action CreateMate => OnBtnClick;
+         private void OnBtnClick()
+         {
+             if (components.Count == 0 || baseComp == null) return;
+             SolidServise solidServise = new SolidServise(this);
+         }*/
     }
 }
