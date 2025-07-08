@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.ComponentModel;
 using System.Diagnostics;
+using CodeStack.SwEx.PMPage.Base;
 namespace AddInPageMate
 {
 
@@ -25,11 +26,13 @@ namespace AddInPageMate
         [SelectionBox(swSelectType_e.swSelCOMPONENTS)]
         [Description("Components")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
+     
         public List<Component2> components { get; set; } = new List<Component2>();
 
-        [SelectionBox(swSelectType_e.swSelCOMPONENTS)]
+        [SelectionBox(typeof(ComponentLevelFilter) ,swSelectType_e.swSelCOMPONENTS)]
         [Description("BaseComponent")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
+    
         public IComponent2 baseComp { get; set; }
 
         [ControlTag(nameof(Right))]
@@ -38,11 +41,18 @@ namespace AddInPageMate
         public bool Top { get; set; }
         [ControlTag(nameof(Left))]
         public bool Left { get; set; }
-       /* public Action CreateMate => OnBtnClick;
+        public Action CreateMate => OnBtnClick;
         private void OnBtnClick()
         {
-            if (components.Count == 0 || baseComp == null) return;
-            SolidServise solidServise = new SolidServise(this);
-        }*/
+            //if (components.Count == 0 || baseComp == null) return;
+            SolidServise.AddPairingMultyComp(this);
+        }
+    }
+    public class ComponentLevelFilter : SelectionCustomFilter<Component2>
+    {
+        protected override bool Filter(Component2 selection)
+        {
+            return selection.IsRoot();
+        }
     }
 }

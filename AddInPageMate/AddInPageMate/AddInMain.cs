@@ -23,7 +23,7 @@ namespace AddInPageMate
     {
         private PropertyManagerPageEx<MatePmpHandler, Model> pageMate;
         private Model model;
-
+        ISldWorks sldWorks;
         private enum Commands_e
         {
             ShowPmpPage
@@ -34,21 +34,27 @@ namespace AddInPageMate
             model = new Model();
             pageMate = new PropertyManagerPageEx<MatePmpHandler, Model>(App);
             AddCommandGroup<Commands_e>(ShowPmpPage);
+            sldWorks = (ISldWorks)App;
+            
             return true;
         }
-
+        public override bool OnDisconnect()
+        {
+            return base.OnDisconnect();
+        }
         private void ShowPmpPage(Commands_e obj)
         {
+           
+            SolidServise.SetSolidServise(sldWorks);
             pageMate.Handler.Closed += Handler_Closed;
             pageMate.Handler.Closing += Handler_Closing;
+           
             pageMate.Show(model);
         }
 
         private void Handler_Closing(swPropertyManagerPageCloseReasons_e reason, CodeStack.SwEx.PMPage.Base.ClosingArg arg)
         {
-            ISldWorks sldWorks = (ISldWorks)App;
-            SolidServise ss = new SolidServise(sldWorks);
-            ss.AddPairingMultyComp(model);
+            
         }
 
         private void Handler_Closed(swPropertyManagerPageCloseReasons_e reason)
@@ -56,6 +62,7 @@ namespace AddInPageMate
          
             pageMate.Handler.Closing-= Handler_Closing;
             pageMate.Handler.Closed-= Handler_Closed;
+            
 
         }
     }
