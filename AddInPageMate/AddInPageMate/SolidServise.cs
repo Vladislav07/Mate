@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,16 +10,7 @@ using SolidWorks.Interop.swconst;
 
 namespace AddInPageMate
 {
-    internal struct LocationComponent
-    {
-        public bool Fliped;
-        public swMateAlign_e Align;
-        public string PlanComp;
-        public string PlanBaseComp;
-        public double dist;
-        public string baseComp;
-        public string childComp;
-    }
+
     public enum PlaneName
     {
         Right = 0,
@@ -40,6 +33,7 @@ namespace AddInPageMate
         private static string nameAssemble;
         private static Component2 swRootComp;
         private static Model model;
+    
         public static void SetSolidServise(ISldWorks _sldWorks)
         {
             sldWorks = _sldWorks;
@@ -60,10 +54,14 @@ namespace AddInPageMate
         {
             List<Component2> childrens = model.components;
             Component2 baseComp=(Component2)model.baseComp;
+            string[] planeBase;
             List<LocationComponent> listLocComp = new List<LocationComponent>();
+            LocationAngleComp angleComp = new LocationAngleComp();
+
             foreach (Component2 item in childrens)
             {
                 Component2 compChild = item;
+                string [] planeComp=GetPlanesComp(item);
                 MathTransform swTrChild = (MathTransform)compChild.Transform2;
                 MathTransform swTrCommand;
                 string nChild = compChild.Name2 + "@" + nameAssemble;
@@ -76,14 +74,18 @@ namespace AddInPageMate
                     MathTransform compInNewSKR = (MathTransform)swTrChild.Multiply(MtrInvPlaneBase.Inverse());
                     bChild = baseComp.Name2 + "@" + nameAssemble;
                     swTrCommand = compInNewSKR;
+                    planeBase = GetPlanesComp(baseComp);
                 }
                 else
                 {
                     swTrCommand = swTrChild;
                     bChild = nameAssemble;
+                    planeBase=new string[3];
+                    planeBase[0] = "Right";
+                    planeBase[1] = "Top";
+                    planeBase[2] = "Front";
                 }
 
-                PlaneName pn;
                 double ScaleOutb = 0;
                 Object Xch = null;
                 Object Ych = null;
@@ -98,16 +100,14 @@ namespace AddInPageMate
                 listVecor[2] = (MathVector)Zch;
 
                 double[] coord = (double[])((MathVector)TrObjOutch).ArrayData;
-                PlaneName planeBase = PlaneName.Right;
-
-               
-                for (int i = 0; i < 3; i++, planeBase++)
+    
+                for (int i = 0; i <3; i++)
                 {
                     LocationComponent l = new LocationComponent();
                     l.baseComp = bChild;
                     l.childComp = nChild;
-                    l.PlanBaseComp = planeBase.ToString();
-                    l = IsFlipedAndAlign(l, listVecor[i], coord[i]);
+                    l.PlanBaseComp = planeBase[i];
+                    l = IsFlipedAndAlign(l, listVecor[i], coord[i], planeComp, angleComp);
                     l.dist = Math.Abs(Math.Round(coord[i], 3));
                     listLocComp.Add(l);
                 }
@@ -117,6 +117,25 @@ namespace AddInPageMate
             }
           
             return true;
+        }
+        private static string[] GetPlanesComp(Component2 comp)
+        {
+            Feature swFeat = comp.FirstFeature();
+            string[] planesBase=new string[3];
+            int i=2; 
+            while (swFeat != null)
+            {
+                if ("RefPlane" == swFeat.GetTypeName())
+                {
+                    planesBase[i]=swFeat.Name;
+                    i--;                         
+                }
+                if(i<0) break;
+                swFeat = swFeat.GetNextFeature() as Feature;
+            }
+
+            return planesBase;
+
         }
         private static MathTransform CreateRootMathTr()
         {
@@ -138,50 +157,79 @@ namespace AddInPageMate
             string temp = str.Substring(0, pos);
             return temp;
         }
-        private static LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord)
+        private static LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, string[]planeComp, LocationAngleComp angleComp)
         {
-            PlaneName plane = PlaneName.Right;
+  
             double[] orientation = (double[])vector.ArrayData;
             if (Math.Abs(Math.Round(coord * 1000)) < 1) coord = 0;
 
             double temp;
-            for (int i = 0; i < 3; i++, plane++)
-            {       
-                    temp = Math.Round(orientation[i]);
-
-                if (temp == 1)
-                { 
-                    loc.PlanComp = plane.ToString();
-                    if (coord > 0)
-                    {
-                        loc.Fliped = true;
-                    }
-                    else
-                    {
-                        loc.Fliped = false;
-                    }
-                    loc.Align = swMateAlign_e.swMateAlignALIGNED;
-                    return loc;
-                }
-                else if (temp == -1)
+            for (int i = 0; i < 3; i++)
+            {
+                temp = orientation[i];
+               temp= Math.Round(temp);
+                switch (temp)
                 {
-                    loc.PlanComp = plane.ToString();
-                    if (coord > 0)
-                    {
-                        loc.Fliped = false;
-                    }
-                    else
-                    {
-                        loc.Fliped = true;
-                    }
-                    loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
-                    return loc;
-                }
-                else
-                {
-                    continue;
-                }
+                    case 1:
+                        loc.PlanComp = planeComp[i];
+                        loc.TypeSelect = "PLANE";
+                        if (coord > 0)
+                        {
+                            loc.Fliped = true;
+                        }
+                        else
+                        {
+                            loc.Fliped = false;
+                        }
+                        loc.Align = swMateAlign_e.swMateAlignALIGNED;
 
+                        break;
+                    case -1:
+                        loc.PlanComp = planeComp[i];
+                        loc.TypeSelect = "PLANE";
+                        if (coord > 0)
+                        {
+                            loc.Fliped = false;
+                        }
+                        else
+                        {
+                            loc.Fliped = true;
+                        }
+                        loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
+                        break;
+                    case 0:
+
+                        break;
+                    case double val when val >= 0.1 && val <= 0.99:
+                        loc.PlanComp = "Point1@origin";
+                        loc.Align = swMateAlign_e.swMateAlignCLOSEST;
+                        loc.TypeSelect = "EXTSKETCHPOINT";
+                        if(coord > 0) {
+                            loc.Fliped = true;
+                        }
+                        else if(coord < 0)
+                        {
+                            loc.Fliped = false;
+                        }
+                        angleComp.SetNextValue(Math.Round(temp, 3), planeComp[i]);
+                        loc.PlanComp = planeComp[i];
+                        break;
+                    case double val when val >= -0.99 && val <= -0.1:
+                        loc.PlanComp = "Point1@origin";
+                        loc.Align = swMateAlign_e.swMateAlignCLOSEST;
+                        loc.TypeSelect = "EXTSKETCHPOINT";
+                        if(coord > 0)
+                        {
+                            loc.Fliped = false;
+                        }
+                        else if (coord < 0)
+                        {
+                            loc.Fliped = true;
+                        }                   
+                        angleComp.SetNextValue(Math.Round(temp, 3), planeComp[i]);
+                        loc.PlanComp = planeComp[i];
+                        break;
+                }
             }
             return loc;
 
@@ -234,8 +282,8 @@ namespace AddInPageMate
             swModel.ClearSelection2(true);
             try
             {
-                boolstat = swDocExt.SelectByID2(FirstSelection, "PLANE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
-                boolstat = swDocExt.SelectByID2(SecondSelection, "PLANE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+                boolstat = swDocExt.SelectByID2(FirstSelection, orientation.TypeSelect, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+                boolstat = swDocExt.SelectByID2(SecondSelection, orientation.TypeSelect, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
         
                 matefeature = (Feature)swAssemblyDoc.AddMate3((int)swMateType_e.swMateDISTANCE, (int)align, flipped, distance, distance, distance, 0, 0, 0, 0, 0, false, out mateError);
                 if(matefeature == null)
@@ -259,6 +307,26 @@ namespace AddInPageMate
             
             string AssemblyTitle = swModel.GetTitle();
             return AssemblyTitle;      
+        }
+        public static void DetermineTransformation(double[,] transformMatrix, LocationAngleComp angleComp)
+        {
+            bool alignment = Math.Sign(transformMatrix[0, 0]) == Math.Sign(transformMatrix[1, 1]);
+            if (alignment)
+            {
+                angleComp.Align = swMateAlign_e.swMateAlignALIGNED;
+            }
+            else
+            {
+                angleComp.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
+            }
+            
+            double angle = Math.Atan2(transformMatrix[1, 0], transformMatrix[0, 0]) * (180 / Math.PI);
+            angleComp.Angle = angle;
+
+           bool direction = (transformMatrix[0, 0] * transformMatrix[1, 1] - transformMatrix[1, 0] * transformMatrix[0, 1] > 0) ?
+                true : false;  //"По : Против часовой стрелки"
+            angleComp.Fliped = direction;
+     
         }
 
     }

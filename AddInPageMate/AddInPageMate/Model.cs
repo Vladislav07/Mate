@@ -11,6 +11,9 @@ using System.Runtime.InteropServices.ComTypes;
 using System.ComponentModel;
 using System.Diagnostics;
 using CodeStack.SwEx.PMPage.Base;
+using System.IO;
+using CodeStack.SwEx.PMPage.Controls;
+using System.Runtime.CompilerServices;
 namespace AddInPageMate
 {
 
@@ -26,10 +29,10 @@ namespace AddInPageMate
         [SelectionBox(swSelectType_e.swSelCOMPONENTS)]
         [Description("Components")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
-     
+        [ControlOptions(height:120)]
         public List<Component2> components { get; set; } = new List<Component2>();
 
-        [SelectionBox(typeof(ComponentLevelFilter) ,swSelectType_e.swSelCOMPONENTS)]
+        [SelectionBox( swSelectType_e.swSelCOMPONENTS)]
         [Description("BaseComponent")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
     
@@ -48,11 +51,28 @@ namespace AddInPageMate
             SolidServise.AddPairingMultyComp(this);
         }
     }
-    public class ComponentLevelFilter : SelectionCustomFilter<Component2>
+/*    public class ComponentLevelFilter : SelectionCustomFilter<Component2>
     {
-        protected override bool Filter(Component2 selection)
+        protected override bool Filter(IPropertyManagerPageControlEx selBox,
+            Component2 selection,
+            swSelectType_e selType,
+            ref string itemText)
         {
-            return selection.IsRoot();
+
+            selBox.ValueChanged += SelBox_ValueChanged;
+            return  true;
+            
         }
-    }
+
+        private void SelBox_ValueChanged(Xarial.VPages.Framework.Base.IControl sender, object newValue)
+        {
+
+                Component2 c = newValue as Component2;
+                if (c.IsRoot())  return;
+                c = c.GetParent();
+                sender.SetValue(c.GetParent());
+
+        }
+    }*/
+    
 }
