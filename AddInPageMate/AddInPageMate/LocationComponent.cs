@@ -7,7 +7,7 @@ using SolidWorks.Interop.swconst;
 
 namespace AddInPageMate
 {
-    internal struct LocationComponent
+    public class LocationComponent
     {
         public bool Fliped;
         public swMateAlign_e Align;
@@ -17,22 +17,27 @@ namespace AddInPageMate
         public string baseComp;
         public string childComp;
         public string TypeSelect;
+        public string TypeSelectBase;
+        public double Angle;
     }
-    internal class LocationAngleComp
+    public class LocationAngleComp: LocationComponent
     {
+       
+       // public new string[] PlanBaseComp;
         public double LT;
         public double RT;
         public double LB;
         public double RB;
-        public string[] plane;
-        public bool Fliped;
-        public swMateAlign_e Align;
-        public double Angle;
+        public string[] plane;     
+       
         private int currentIndex;
+        private double[,]matr;
         public LocationAngleComp()
         {
             currentIndex = 0;
             plane = new string[4];
+            matr = new double[2,2];
+           // PlanBaseComp=new string[4];
 
         }
         public double this[int index]
@@ -46,15 +51,19 @@ namespace AddInPageMate
                     {
                         case 0:
                             LT = value;
+                            matr[0,0] = value;
                             break;
                         case 1:
                             RT = value;
+                            matr[0, 1] = value;
                             break;
                         case 2:
                             LB = value;
+                            matr[1, 0] = value;
                             break;
                         case 3:
                             RB = value;
+                            matr[1, 1] = value;
                             break;
 
                     }
@@ -68,12 +77,15 @@ namespace AddInPageMate
             {
                 this[currentIndex] = value;
                 plane[currentIndex - 1] = planeComp;
-
             }
             else
             {
                 throw new Exception("Индексатор заполнен");
             }
+        }
+        public double[,] GetMatr()
+        {
+            return matr;
         }
 
     }

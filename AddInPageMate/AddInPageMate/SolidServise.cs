@@ -107,12 +107,23 @@ namespace AddInPageMate
                     l.baseComp = bChild;
                     l.childComp = nChild;
                     l.PlanBaseComp = planeBase[i];
-                    l = IsFlipedAndAlign(l, listVecor[i], coord[i], planeComp, angleComp);
+                    l.TypeSelectBase = "PLANE";
+                    l = IsFlipedAndAlign(l, listVecor[i], coord[i], planeComp, angleComp, planeBase[i]);
                     l.dist = Math.Abs(Math.Round(coord[i], 3));
                     listLocComp.Add(l);
                 }
+               
                 DeletingMateComp(compChild);
                 AddMate(listLocComp);
+              //  if (angleComp.Angle != 0)
+              //  {
+                    angleComp.baseComp = bChild;
+                    angleComp.childComp = nChild;
+                    angleComp.TypeSelectBase = "PLANE";
+                    angleComp.TypeSelect = "PLANE";
+                    DetermineTransformation(angleComp.GetMatr(), angleComp);
+                    AddMateAngleToAssemble(angleComp);
+              //  }
                 listLocComp.Clear();
             }
           
@@ -157,19 +168,22 @@ namespace AddInPageMate
             string temp = str.Substring(0, pos);
             return temp;
         }
-        private static LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, string[]planeComp, LocationAngleComp angleComp)
+        private static LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, string[]planeComp, LocationAngleComp angleComp, string planeBase)
         {
   
             double[] orientation = (double[])vector.ArrayData;
-            if (Math.Abs(Math.Round(coord * 1000)) < 1) coord = 0;
 
+            int y=0;
             double temp;
             for (int i = 0; i < 3; i++)
             {
                 temp = orientation[i];
-               temp= Math.Round(temp);
+                temp= Math.Round(temp,4);
                 switch (temp)
                 {
+                    case 0:
+
+                        break;
                     case 1:
                         loc.PlanComp = planeComp[i];
                         loc.TypeSelect = "PLANE";
@@ -182,8 +196,8 @@ namespace AddInPageMate
                             loc.Fliped = false;
                         }
                         loc.Align = swMateAlign_e.swMateAlignALIGNED;
-
                         break;
+
                     case -1:
                         loc.PlanComp = planeComp[i];
                         loc.TypeSelect = "PLANE";
@@ -197,37 +211,22 @@ namespace AddInPageMate
                         }
                         loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
                         break;
-                    case 0:
-
-                        break;
-                    case double val when val >= 0.1 && val <= 0.99:
-                        loc.PlanComp = "Point1@origin";
-                        loc.Align = swMateAlign_e.swMateAlignCLOSEST;
+                   
+                    case double val when val >= 0.1 && val <= 0.99 || val >= -0.99 && val <= -0.1:
+                        loc.PlanComp = "Point1@Origin";
+                        loc.Align = swMateAlign_e.swAlignAGAINST;
                         loc.TypeSelect = "EXTSKETCHPOINT";
-                        if(coord > 0) {
-                            loc.Fliped = true;
+                       
+                        if (coord > 0) {
+                            loc.Fliped = false;
                         }
                         else if(coord < 0)
                         {
-                            loc.Fliped = false;
-                        }
-                        angleComp.SetNextValue(Math.Round(temp, 3), planeComp[i]);
-                        loc.PlanComp = planeComp[i];
-                        break;
-                    case double val when val >= -0.99 && val <= -0.1:
-                        loc.PlanComp = "Point1@origin";
-                        loc.Align = swMateAlign_e.swMateAlignCLOSEST;
-                        loc.TypeSelect = "EXTSKETCHPOINT";
-                        if(coord > 0)
-                        {
-                            loc.Fliped = false;
-                        }
-                        else if (coord < 0)
-                        {
                             loc.Fliped = true;
-                        }                   
-                        angleComp.SetNextValue(Math.Round(temp, 3), planeComp[i]);
-                        loc.PlanComp = planeComp[i];
+                        }
+                        angleComp.PlanBaseComp = planeBase;
+                        angleComp.PlanComp = planeComp[i];
+                        angleComp.SetNextValue(Math.Round(temp, 3), planeComp[i]);                   
                         break;
                 }
             }
@@ -277,13 +276,13 @@ namespace AddInPageMate
             Feature matefeature;
 
             FirstSelection = planePart + "@" + orientation.childComp;  // +"@" + AssemblyName;
-            SecondSelection = planeCoord + "@" + orientation.baseComp;
+            SecondSelection = orientation.PlanBaseComp + "@" + orientation.baseComp;
             MateName = planePart;
             swModel.ClearSelection2(true);
             try
             {
                 boolstat = swDocExt.SelectByID2(FirstSelection, orientation.TypeSelect, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
-                boolstat = swDocExt.SelectByID2(SecondSelection, orientation.TypeSelect, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+                boolstat = swDocExt.SelectByID2(SecondSelection, orientation.TypeSelectBase, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
         
                 matefeature = (Feature)swAssemblyDoc.AddMate3((int)swMateType_e.swMateDISTANCE, (int)align, flipped, distance, distance, distance, 0, 0, 0, 0, 0, false, out mateError);
                 if(matefeature == null)
@@ -319,14 +318,52 @@ namespace AddInPageMate
             {
                 angleComp.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
             }
-            
-            double angle = Math.Atan2(transformMatrix[1, 0], transformMatrix[0, 0]) * (180 / Math.PI);
+
+            double angle = Math.Atan2(transformMatrix[1, 0], transformMatrix[0, 0]); // * (180 / Math.PI);
             angleComp.Angle = angle;
 
            bool direction = (transformMatrix[0, 0] * transformMatrix[1, 1] - transformMatrix[1, 0] * transformMatrix[0, 1] > 0) ?
                 true : false;  //"По : Против часовой стрелки"
-            angleComp.Fliped = direction;
+            angleComp.Fliped = !direction;
      
+        }
+
+        private static void AddMateAngleToAssemble(LocationAngleComp orientation)
+        {
+            string planePart = orientation.PlanComp;
+            bool flipped = orientation.Fliped;
+            swMateAlign_e align = orientation.Align;
+            double angle = Math.Abs(Math.Round(orientation.Angle,2));
+            string FirstSelection;
+            string SecondSelection;
+            string MateName;
+            Feature matefeature;
+
+            FirstSelection = planePart + "@" + orientation.childComp;
+            SecondSelection = orientation.PlanBaseComp + "@" + orientation.baseComp;
+            MateName = planePart;
+            swModel.ClearSelection2(true);
+            try
+            {
+                boolstat = swDocExt.SelectByID2(FirstSelection, orientation.TypeSelect, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+                boolstat = swDocExt.SelectByID2(SecondSelection, orientation.TypeSelectBase, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+
+                matefeature = (Feature)swAssemblyDoc.AddMate3((int)swMateType_e.swMateANGLE, (int)align, flipped, 0, 0, 0, 0, 0, angle, angle, angle, false, out mateError);
+                if (matefeature == null)
+                {
+                    Console.WriteLine(mateError.ToString());
+                }
+                matefeature.Name = MateName;
+                swAssemblyDoc.EditRebuild();
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine(mateError.ToString());
+                Console.WriteLine(ex.Message);
+            }
+
+
         }
 
     }
