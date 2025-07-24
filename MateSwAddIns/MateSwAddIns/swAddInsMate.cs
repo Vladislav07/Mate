@@ -11,7 +11,7 @@ namespace MateSwAddIns
     [Guid("D3B5A734-F667-42F0-B70E-A0CDCBAB3FD1"), ComVisible(true)]
     [AutoRegister("AddInSwMate", "AddInSwMate2", true)]
    public class swAddInsMate : SwAddInEx
-    {
+   {
         private ModelDoc2 swDoc;
         private AssemblyDoc swMainAssy;
         private Configuration swMainConfig;
@@ -20,6 +20,22 @@ namespace MateSwAddIns
         TaskpaneView taskPaneView;
         PanelTree ctrl;
         string[] planeBase;
+        MathUtility utility;
+        SldWorks sldWorks;
+        private  MathTransform CreateRootMathTr()
+        {
+            double[] arr = new double[16];
+
+            arr[0] = 1; arr[1] = 0; arr[2] = 0;
+            arr[3] = 0; arr[4] = 0; arr[5] = 0;
+            arr[6] = 0; arr[7] = 0; arr[8] = 1;
+            arr[9] = 0; arr[10] = 0; arr[11] = 0;
+            arr[12] = 1;
+            arr[13] = 0; arr[14] = 0; arr[15] = 0;
+            MathTransform m = (MathTransform)utility.CreateTransform(arr);
+            return m;
+
+        }
         public override bool OnConnect()
         {
             taskPaneView =(TaskpaneView) CreateTaskPane<PanelTree>(out ctrl);
@@ -31,6 +47,10 @@ namespace MateSwAddIns
 
         private int TaskPaneView_TaskPaneToolbarButtonClicked(int ButtonIndex)
         {
+
+
+            sldWorks = (SldWorks)App;
+            utility= (MathUtility)sldWorks.GetMathUtility();
             swDoc = (ModelDoc2)App.ActiveDoc;
             if (swDoc == null)
             {
@@ -47,6 +67,7 @@ namespace MateSwAddIns
                 ctrl.lblMessage.Text = "This program only works with assemblies";
                 return 1;
             }
+       
             swMainAssy = (AssemblyDoc)swDoc;
             selMgr = (SelectionMgr)swDoc.ISelectionManager;
             swMainAssy.UserSelectionPostNotify += SwMainAssy_UserSelectionPostNotify;
@@ -94,35 +115,23 @@ namespace MateSwAddIns
             double k = 180 / Math.PI;
 
             String msg = swComponent.Name2 + "\n";
-            msg = msg + rotationMatrix[0] +":"+ rotationMatrix[1] + ":"+rotationMatrix[2] + "\n ";
-            msg = msg + rotationMatrix[3] + ":" + rotationMatrix[4] + ":"+rotationMatrix[5] + "\n ";
-            msg = msg + rotationMatrix[6] + ":" + rotationMatrix[7] + ":"+rotationMatrix[8] + "\n ";
-            msg = msg + "Смещение: X={0},Y={1}, Z={2},\n" + offsetX*1000 + "\n" + offsetY*1000 + "\n" + offsetZ*1000 + "\n";
-            msg=msg + "Углы: X={0}, Y={1}, Z={2}" + "\n" + k*angleX + "\n" + k*angleY + "\n" + k * angleZ + "\n";
+            msg = msg + rotationMatrix[0] + ":" + rotationMatrix[1] + ":" + rotationMatrix[2] + "\n ";
+            msg = msg + rotationMatrix[3] + ":" + rotationMatrix[4] + ":" + rotationMatrix[5] + "\n ";
+            msg = msg + rotationMatrix[6] + ":" + rotationMatrix[7] + ":" + rotationMatrix[8] + "\n ";
+            msg = msg + "Смещение: X={0},Y={1}, Z={2},\n" + offsetX * 1000 + "\n" + offsetY * 1000 + "\n" + offsetZ * 1000 + "\n";
+            msg = msg + "Углы: X={0}, Y={1}, Z={2}" + "\n" + k * angleX + "\n" + k * angleY + "\n" + k * angleZ + "\n";
 
-            double ScaleOutb = 0;
-            Object Xch = null;
-            Object Ych = null;
-            Object Zch = null;
-            Object TrObjOutch = null;
-            double ScaleOutch = 0;
+            msg = msg + "------------------5";
+            MathVector[] listVecor;
+            double[] coord, orientationX, orientationY, orientationZ;
 
-            transform.GetData(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
-            MathVector[] listVecor = new MathVector[3];
-            listVecor[0] = (MathVector)Xch;
-            listVecor[1] =(MathVector) Ych;
-            listVecor[2] = (MathVector)Zch;
-            double[] coord = (double[])((MathVector)TrObjOutch).ArrayData;
-
-            double[] orientationX= (double[])listVecor[0].ArrayData;
-            double[] orientationY= (double[])listVecor[1].ArrayData;
-            double[] orientationZ = (double[])listVecor[2].ArrayData;
+            ExtractData(transform, out listVecor, out coord, out orientationX, out orientationY, out orientationZ);
 
             msg = msg + orientationX[0] + ":" + orientationX[1] + ":" + orientationX[2] + "\n ";
             msg = msg + orientationY[0] + ":" + orientationY[1] + ":" + orientationY[2] + "\n ";
             msg = msg + orientationZ[0] + ":" + orientationZ[1] + ":" + orientationZ[2] + "\n ";
 
-            msg = msg + Math.Round(translation[0],3) + ":" + Math.Round(translation[1], 3) + ":" + Math.Round(translation[2], 3) + "\n";
+            msg = msg + Math.Round(translation[0], 3) + ":" + Math.Round(translation[1], 3) + ":" + Math.Round(translation[2], 3) + "\n";
             msg = msg + Math.Round(translation[3], 3) + ":" + Math.Round(translation[4], 3) + ":" + Math.Round(translation[5], 3) + "\n";
             msg = msg + Math.Round(translation[6], 3) + ":" + Math.Round(translation[7], 3) + ":" + Math.Round(translation[8], 3) + "\n";
 
@@ -131,7 +140,7 @@ namespace MateSwAddIns
             for (int i = 0; i < 3; i++)
             {
                 LocationComponent l = new LocationComponent();
-          
+
                 l.baseComp = planeBase[i];
                 l = IsFlipedAndAlign(l, listVecor[i], coord[i], angleComp);
                 l.dist = Math.Abs(Math.Round(coord[i], 3));
@@ -140,12 +149,54 @@ namespace MateSwAddIns
             }
             msg = msg + "angle1: " + angleComp.LT + " =: " + angleComp.plane[0] + " - " + angleComp.RT + " =: " + angleComp.plane[1] + "\n";
             msg = msg + "angle2: " + angleComp.LB + " =: " + angleComp.plane[2] + " - " + angleComp.RB + " =: " + angleComp.plane[3] + "\n";
-             double[,] angleValue= new double[2,2];
-            angleValue[0,0] =angleComp.LT; angleValue[0, 1] = angleComp.RT;
-            angleValue[1,0]=angleComp.LB; angleValue[1, 1] = angleComp.RB;
-           
-            ctrl.lblMessage.Text = msg +  DetermineTransformation(angleValue);
+            double[,] angleValue = new double[2, 2];
+            angleValue[0, 0] = angleComp.LT; angleValue[0, 1] = angleComp.RT;
+            angleValue[1, 0] = angleComp.LB; angleValue[1, 1] = angleComp.RB;
+
+            MathTransform x = CreateRootMathTr();
+            MathTransform res = (MathTransform)transform.Multiply(x);
+            MathVector[] listVecor1;
+            double[] coord1, orientationX1, orientationY1, orientationZ1;
+            ExtractData(res, out listVecor1, out coord1, out orientationX1, out orientationY1, out orientationZ1);
+            msg = msg + "--------------------------" + "\n ";
+            msg = msg + Math.Round(orientationX1[0],2) + ":" + Math.Round(orientationX1[1],2) + ":" + Math.Round(orientationX1[2],2) + "\n ";
+            msg = msg + Math.Round(orientationY1[0],2) + ":" + Math.Round(orientationY1[1],2) + ":" + Math.Round(orientationY1[2],2) + "\n ";
+            msg = msg + Math.Round(orientationZ1[0],2) + ":" + Math.Round(orientationZ1[1],2) + ":" + Math.Round(orientationZ1[2],2) + "\n ";
+            msg = msg + "--------------------------" + "\n ";
+            double[,] localTransformationMatrix=new double[3,3];
+            localTransformationMatrix[0,0] = orientationX[0];
+            localTransformationMatrix[0, 1] = orientationX[1];
+            localTransformationMatrix[0, 2] = orientationX[2];
+            localTransformationMatrix[1, 0] = orientationY[0];
+            localTransformationMatrix[1, 1] = orientationY[1];
+            localTransformationMatrix[1, 2] = orientationY[2];
+            localTransformationMatrix[2, 0] = orientationZ[0];
+            localTransformationMatrix[2, 1] = orientationZ[1];
+            localTransformationMatrix[2, 2] = orientationZ[2];
+            CalculateAnglesAndAlignmentWithGlobalPlanes(localTransformationMatrix, ref msg);
+            ctrl.lblMessage.Text = msg + DetermineTransformation(angleValue);
         }
+
+        private static void ExtractData(MathTransform transform, out MathVector[] listVecor, out double[] coord, out double[] orientationX, out double[] orientationY, out double[] orientationZ)
+        {
+            double ScaleOutb = 0;
+            Object Xch = null;
+            Object Ych = null;
+            Object Zch = null;
+            Object TrObjOutch = null;
+            double ScaleOutch = 0;
+
+            transform.GetData(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
+            listVecor = new MathVector[3];
+            listVecor[0] = (MathVector)Xch;
+            listVecor[1] = (MathVector)Ych;
+            listVecor[2] = (MathVector)Zch;
+            coord = (double[])((MathVector)TrObjOutch).ArrayData;
+            orientationX = (double[])listVecor[0].ArrayData;
+            orientationY = (double[])listVecor[1].ArrayData;
+            orientationZ = (double[])listVecor[2].ArrayData;
+        }
+
         private  LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, LocationAngleComp angleComp)
         {
             // PlaneName plane = PlaneName.Right;
@@ -275,7 +326,7 @@ namespace MateSwAddIns
             }
             public void SetNextValue(double value, string planeComp)
             {
-                if (currentIndex < 4)
+                if (currentIndex < 6)
                 {
                     this[currentIndex] = value;
                     plane[currentIndex-1] = planeComp;
@@ -295,6 +346,77 @@ namespace MateSwAddIns
             return base.OnDisconnect();
 
         }
-       
+        public static void CalculateAnglesAndAlignmentWithGlobalPlanes(double[,] localTransformationMatrix, ref string msg)
+        {
+            // Нормали к плоскостям глобальной системы координат
+            double[] globalNormalYZ = { 1, 0, 0 }; // Нормаль к плоскости YZ
+            double[] globalNormalXZ = { 0, 1, 0 }; // Нормаль к плоскости XZ
+            double[] globalNormalXY = { 0, 0, 1 }; // Нормаль к плоскости XY
+
+            // Нормали плоскостей локального компонента из матрицы преобразования
+            double[] localNormalX = { localTransformationMatrix[0, 0], localTransformationMatrix[1, 0], localTransformationMatrix[2, 0] };
+            double[] localNormalY = { localTransformationMatrix[0, 1], localTransformationMatrix[1, 1], localTransformationMatrix[2, 1] };
+            double[] localNormalZ = { localTransformationMatrix[0, 2], localTransformationMatrix[1, 2], localTransformationMatrix[2, 2] };
+
+            // Вычисляем углы между плоскостями локального компонента и глобальными плоскостями
+            double angleToYZ = CalculateAngleBetweenPlanes(localNormalX, globalNormalYZ);
+            double angleToXZ = CalculateAngleBetweenPlanes(localNormalY, globalNormalXZ);
+            double angleToXY = CalculateAngleBetweenPlanes(localNormalZ, globalNormalXY);
+
+            // Определяем сонаправленность нормалей
+            bool alignedWithYZ = AreNormalsAligned(localNormalX, globalNormalYZ);
+            bool alignedWithXZ = AreNormalsAligned(localNormalY, globalNormalXZ);
+            bool alignedWithXY = AreNormalsAligned(localNormalZ, globalNormalXY);
+
+             msg = msg + ($"Углы между плоскостями локального компонента и глобальными плоскостями:") + "\n";
+             msg = msg +($"Угол к плоскости YZ: {angleToYZ} градусов")+ "\n";
+             msg = msg +($"Угол к плоскости XZ: {angleToXZ} градусов")+ "\n";
+             msg = msg +($"Угол к плоскости XY: {angleToXY} градусов") + "\n";
+            
+             msg = msg +($"Сонаправленность нормалей:") + "\n";
+             msg = msg +($"Нормаль к плоскости YZ сонаправлена: {alignedWithYZ}") + "\n";
+             msg = msg +($"Нормаль к плоскости XZ сонаправлена: {alignedWithXZ}") + "\n";
+             msg = msg + ($"Нормаль к плоскости XZ сонаправлена: {alignedWithXY}") + "\n";
+        }
+        public static void CalculateAngleDirectionWithGlobalPlanes(double[] localNormal, double[] globalNormal)
+        {
+            // Векторное произведение нормалей плоскостей
+            double[] crossProduct = CrossProduct(localNormal, globalNormal);
+
+            // Определяем направление угла
+            string direction = crossProduct[2] > 0 ? "по часовой стрелке" : "против часовой стрелки";
+
+            Console.WriteLine($"Направление угла между плоскостями: {direction}");
+        }
+
+        private static double[] CrossProduct(double[] vector1, double[] vector2)
+        {
+            double x = vector1[1] * vector2[2] - vector1[2] * vector2[1];
+            double y = vector1[2] * vector2[0] - vector1[0] * vector2[2];
+            double z = vector1[0] * vector2[1] - vector1[1] * vector2[0];
+
+            return new double[] { x, y, z };
+        }
+
+        private static double CalculateAngleBetweenPlanes(double[] normal1, double[] normal2)
+        {
+            double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
+            double magnitude1 = Math.Sqrt(normal1[0] * normal1[0] + normal1[1] * normal1[1] + normal1[2] * normal1[2]);
+            double magnitude2 = Math.Sqrt(normal2[0] * normal2[0] + normal2[1] * normal2[1] + normal2[2] * normal2[2]);
+
+            double cosAngle = dotProduct / (magnitude1 * magnitude2);
+            double angle = Math.Acos(cosAngle) * 180 / Math.PI; // Преобразуем угол из радиан в градусы
+
+            return angle;
+        }
+
+        private static bool AreNormalsAligned(double[] normal1, double[] normal2)
+        {
+            double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
+            return dotProduct > 0;
+        }
+
+
+
     }
 }

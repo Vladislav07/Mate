@@ -11,6 +11,7 @@ namespace AddInPageMate
     {
         public bool Fliped;
         public swMateAlign_e Align;
+        public swMateType_e mateType;
         public string PlanComp;
         public string PlanBaseComp;
         public double dist;
@@ -22,8 +23,7 @@ namespace AddInPageMate
     }
     public class LocationAngleComp: LocationComponent
     {
-       
-       // public new string[] PlanBaseComp;
+  
         public double LT;
         public double RT;
         public double LB;
@@ -37,7 +37,6 @@ namespace AddInPageMate
             currentIndex = 0;
             plane = new string[4];
             matr = new double[2,2];
-           // PlanBaseComp=new string[4];
 
         }
         public double this[int index]
