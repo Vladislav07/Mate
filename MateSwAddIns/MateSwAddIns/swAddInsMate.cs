@@ -10,8 +10,8 @@ namespace MateSwAddIns
 {
     [Guid("D3B5A734-F667-42F0-B70E-A0CDCBAB3FD1"), ComVisible(true)]
     [AutoRegister("AddInSwMate", "AddInSwMate2", true)]
-   public class swAddInsMate : SwAddInEx
-   {
+    public class swAddInsMate : SwAddInEx
+    {
         private ModelDoc2 swDoc;
         private AssemblyDoc swMainAssy;
         private Configuration swMainConfig;
@@ -22,7 +22,7 @@ namespace MateSwAddIns
         string[] planeBase;
         MathUtility utility;
         SldWorks sldWorks;
-        private  MathTransform CreateRootMathTr()
+        private MathTransform CreateRootMathTr()
         {
             double[] arr = new double[16];
 
@@ -38,7 +38,7 @@ namespace MateSwAddIns
         }
         public override bool OnConnect()
         {
-            taskPaneView =(TaskpaneView) CreateTaskPane<PanelTree>(out ctrl);
+            taskPaneView = (TaskpaneView)CreateTaskPane<PanelTree>(out ctrl);
             taskPaneView.AddStandardButton((int)swTaskPaneBitmapsOptions_e.swTaskPaneBitmapsOptions_Ok, "Connect");
             taskPaneView.TaskPaneToolbarButtonClicked += TaskPaneView_TaskPaneToolbarButtonClicked;
             taskPaneView.ShowView();
@@ -50,12 +50,12 @@ namespace MateSwAddIns
 
 
             sldWorks = (SldWorks)App;
-            utility= (MathUtility)sldWorks.GetMathUtility();
+            utility = (MathUtility)sldWorks.GetMathUtility();
             swDoc = (ModelDoc2)App.ActiveDoc;
             if (swDoc == null)
             {
-             
-                ctrl.lblMessage.Text="Could not acquire an active document";
+
+                ctrl.lblMessage.Text = "Could not acquire an active document";
                 return 1;
             }
             swDocumentTypes_e swDocType;
@@ -67,11 +67,11 @@ namespace MateSwAddIns
                 ctrl.lblMessage.Text = "This program only works with assemblies";
                 return 1;
             }
-       
+
             swMainAssy = (AssemblyDoc)swDoc;
             selMgr = (SelectionMgr)swDoc.ISelectionManager;
             swMainAssy.UserSelectionPostNotify += SwMainAssy_UserSelectionPostNotify;
-           
+
             return 0;
 
 
@@ -115,25 +115,25 @@ namespace MateSwAddIns
             double k = 180 / Math.PI;
 
             String msg = swComponent.Name2 + "\n";
-            msg = msg + rotationMatrix[0] + ":" + rotationMatrix[1] + ":" + rotationMatrix[2] + "\n ";
+         /*   msg = msg + rotationMatrix[0] + ":" + rotationMatrix[1] + ":" + rotationMatrix[2] + "\n ";
             msg = msg + rotationMatrix[3] + ":" + rotationMatrix[4] + ":" + rotationMatrix[5] + "\n ";
             msg = msg + rotationMatrix[6] + ":" + rotationMatrix[7] + ":" + rotationMatrix[8] + "\n ";
             msg = msg + "Смещение: X={0},Y={1}, Z={2},\n" + offsetX * 1000 + "\n" + offsetY * 1000 + "\n" + offsetZ * 1000 + "\n";
             msg = msg + "Углы: X={0}, Y={1}, Z={2}" + "\n" + k * angleX + "\n" + k * angleY + "\n" + k * angleZ + "\n";
 
-            msg = msg + "------------------5";
+            msg = msg + "------------------5";*/
             MathVector[] listVecor;
             double[] coord, orientationX, orientationY, orientationZ;
 
             ExtractData(transform, out listVecor, out coord, out orientationX, out orientationY, out orientationZ);
 
-            msg = msg + orientationX[0] + ":" + orientationX[1] + ":" + orientationX[2] + "\n ";
+        /*    msg = msg + orientationX[0] + ":" + orientationX[1] + ":" + orientationX[2] + "\n ";
             msg = msg + orientationY[0] + ":" + orientationY[1] + ":" + orientationY[2] + "\n ";
             msg = msg + orientationZ[0] + ":" + orientationZ[1] + ":" + orientationZ[2] + "\n ";
 
             msg = msg + Math.Round(translation[0], 3) + ":" + Math.Round(translation[1], 3) + ":" + Math.Round(translation[2], 3) + "\n";
             msg = msg + Math.Round(translation[3], 3) + ":" + Math.Round(translation[4], 3) + ":" + Math.Round(translation[5], 3) + "\n";
-            msg = msg + Math.Round(translation[6], 3) + ":" + Math.Round(translation[7], 3) + ":" + Math.Round(translation[8], 3) + "\n";
+            msg = msg + Math.Round(translation[6], 3) + ":" + Math.Round(translation[7], 3) + ":" + Math.Round(translation[8], 3) + "\n";*/
 
             List<LocationComponent> listLocComp = new List<LocationComponent>();
             LocationAngleComp angleComp = new LocationAngleComp();
@@ -159,22 +159,22 @@ namespace MateSwAddIns
             double[] coord1, orientationX1, orientationY1, orientationZ1;
             ExtractData(res, out listVecor1, out coord1, out orientationX1, out orientationY1, out orientationZ1);
             msg = msg + "--------------------------" + "\n ";
-            msg = msg + Math.Round(orientationX1[0],2) + ":" + Math.Round(orientationX1[1],2) + ":" + Math.Round(orientationX1[2],2) + "\n ";
-            msg = msg + Math.Round(orientationY1[0],2) + ":" + Math.Round(orientationY1[1],2) + ":" + Math.Round(orientationY1[2],2) + "\n ";
-            msg = msg + Math.Round(orientationZ1[0],2) + ":" + Math.Round(orientationZ1[1],2) + ":" + Math.Round(orientationZ1[2],2) + "\n ";
+            msg = msg + Math.Round(orientationX1[0], 2) + ":" + Math.Round(orientationX1[1], 2) + ":" + Math.Round(orientationX1[2], 2) + "\n ";
+            msg = msg + Math.Round(orientationY1[0], 2) + ":" + Math.Round(orientationY1[1], 2) + ":" + Math.Round(orientationY1[2], 2) + "\n ";
+            msg = msg + Math.Round(orientationZ1[0], 2) + ":" + Math.Round(orientationZ1[1], 2) + ":" + Math.Round(orientationZ1[2], 2) + "\n ";
             msg = msg + "--------------------------" + "\n ";
-            double[,] localTransformationMatrix=new double[3,3];
-            localTransformationMatrix[0,0] = orientationX[0];
-            localTransformationMatrix[0, 1] = orientationX[1];
-            localTransformationMatrix[0, 2] = orientationX[2];
-            localTransformationMatrix[1, 0] = orientationY[0];
-            localTransformationMatrix[1, 1] = orientationY[1];
-            localTransformationMatrix[1, 2] = orientationY[2];
-            localTransformationMatrix[2, 0] = orientationZ[0];
-            localTransformationMatrix[2, 1] = orientationZ[1];
-            localTransformationMatrix[2, 2] = orientationZ[2];
+            double[,] localTransformationMatrix = new double[3, 3];
+            localTransformationMatrix[0, 0] = orientationX1[0];
+            localTransformationMatrix[0, 1] = orientationX1[1];
+            localTransformationMatrix[0, 2] = orientationX1[2];
+            localTransformationMatrix[1, 0] = orientationY1[0];
+            localTransformationMatrix[1, 1] = orientationY1[1];
+            localTransformationMatrix[1, 2] = orientationY1[2];
+            localTransformationMatrix[2, 0] = orientationZ1[0];
+            localTransformationMatrix[2, 1] = orientationZ1[1];
+            localTransformationMatrix[2, 2] = orientationZ1[2];
             CalculateAnglesAndAlignmentWithGlobalPlanes(localTransformationMatrix, ref msg);
-            ctrl.lblMessage.Text = msg + DetermineTransformation(angleValue);
+            ctrl.lblMessage.Text = msg;        //+ DetermineTransformation(angleValue);
         }
 
         private static void ExtractData(MathTransform transform, out MathVector[] listVecor, out double[] coord, out double[] orientationX, out double[] orientationY, out double[] orientationZ)
@@ -197,65 +197,65 @@ namespace MateSwAddIns
             orientationZ = (double[])listVecor[2].ArrayData;
         }
 
-        private  LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, LocationAngleComp angleComp)
+        private LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, LocationAngleComp angleComp)
         {
             // PlaneName plane = PlaneName.Right;
             double[] orientation = (double[])vector.ArrayData;
             if (Math.Abs(Math.Round(coord * 1000)) < 1) coord = 0;
 
             double temp;
-       
+
             for (int i = 0; i < 3; i++)
             {
                 temp = orientation[i];
                 switch (temp)
                 {
-                  case 1:
-                    loc.PlanComp = planeBase[i];
-                    if (coord > 0)
-                    {
-                        loc.Fliped = true;
-                    }
-                    else
-                    {
-                        loc.Fliped = false;
-                    }
-                    loc.Align = swMateAlign_e.swMateAlignALIGNED;
-              
-                    break;
-                  case -1:
-                    loc.PlanComp = planeBase[i];
-                    if (coord > 0)
-                    {
-                        loc.Fliped = false;
-                    }
-                    else
-                    {
-                        loc.Fliped = true;
-                    }
-                    loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
-                    break;
-                   case 0:
-                       
-                       break; 
+                    case 1:
+                        loc.PlanComp = planeBase[i];
+                        if (coord > 0)
+                        {
+                            loc.Fliped = true;
+                        }
+                        else
+                        {
+                            loc.Fliped = false;
+                        }
+                        loc.Align = swMateAlign_e.swMateAlignALIGNED;
+
+                        break;
+                    case -1:
+                        loc.PlanComp = planeBase[i];
+                        if (coord > 0)
+                        {
+                            loc.Fliped = false;
+                        }
+                        else
+                        {
+                            loc.Fliped = true;
+                        }
+                        loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
+                        break;
+                    case 0:
+
+                        break;
                     case double val when val >= 0.1 && val <= 0.99:
-                        angleComp.SetNextValue(Math.Round(temp,3), planeBase[i]);
+                        angleComp.SetNextValue(Math.Round(temp, 3), planeBase[i]);
                         loc.PlanComp = planeBase[i];
                         break;
                     case double val when val >= -0.99 && val <= -0.1:
-                        angleComp.SetNextValue(Math.Round(temp,3), planeBase[i]);
+                        angleComp.SetNextValue(Math.Round(temp, 3), planeBase[i]);
                         loc.PlanComp = planeBase[i];
                         break;
                     default:
                         break;
                 }
-               
+
 
             }
             return loc;
 
         }
-        public string DetermineTransformation(double[,] transformMatrix )
+  /*      public string DetermineTransformation(double[,] transformMatrix)
         {
             string msg = "";
             // Определение выравнивания тела
@@ -273,14 +273,14 @@ namespace MateSwAddIns
             msg = msg + "Выравнивание: " + alignmentType + "\n";
             msg = msg + "Направление: " + direction + "\n";
             return msg;
-        }
+        }*/
         internal class LocationComponent
         {
             public bool Fliped;
             public swMateAlign_e Align;
             public double dist;
             public string baseComp;
-            public string PlanComp;       
+            public string PlanComp;
         }
         internal class LocationAngleComp
         {
@@ -289,13 +289,13 @@ namespace MateSwAddIns
             public double LB;
             public double RB;
             public string[] plane;
-            
+
             private int currentIndex;
             public LocationAngleComp()
             {
-               currentIndex = 0;
-               plane = new string[4];
-              
+                currentIndex = 0;
+                plane = new string[4];
+
             }
             public double this[int index]
             {
@@ -329,8 +329,8 @@ namespace MateSwAddIns
                 if (currentIndex < 6)
                 {
                     this[currentIndex] = value;
-                    plane[currentIndex-1] = planeComp;
-                   
+                    plane[currentIndex - 1] = planeComp;
+
                 }
                 else
                 {
@@ -368,25 +368,35 @@ namespace MateSwAddIns
             bool alignedWithXZ = AreNormalsAligned(localNormalY, globalNormalXZ);
             bool alignedWithXY = AreNormalsAligned(localNormalZ, globalNormalXY);
 
-             msg = msg + ($"Углы между плоскостями локального компонента и глобальными плоскостями:") + "\n";
-             msg = msg +($"Угол к плоскости YZ: {angleToYZ} градусов")+ "\n";
-             msg = msg +($"Угол к плоскости XZ: {angleToXZ} градусов")+ "\n";
-             msg = msg +($"Угол к плоскости XY: {angleToXY} градусов") + "\n";
-            
-             msg = msg +($"Сонаправленность нормалей:") + "\n";
-             msg = msg +($"Нормаль к плоскости YZ сонаправлена: {alignedWithYZ}") + "\n";
-             msg = msg +($"Нормаль к плоскости XZ сонаправлена: {alignedWithXZ}") + "\n";
-             msg = msg + ($"Нормаль к плоскости XZ сонаправлена: {alignedWithXY}") + "\n";
+            bool isFlipedX = CalculateAngleDirectionWithGlobalPlanes(localNormalX, globalNormalYZ);
+            bool isFlipedY = CalculateAngleDirectionWithGlobalPlanes(localNormalY, globalNormalXZ);
+            bool isFlipedZ = CalculateAngleDirectionWithGlobalPlanes(localNormalZ, globalNormalXY);
+
+
+            msg = msg + ($"Углы между плоскостями локального компонента и глобальными плоскостями:") + "\n";
+            msg = msg + ($"Угол к плоскости YZ: {angleToYZ} градусов") + "\n";
+            msg = msg + ($"Угол к плоскости XZ: {angleToXZ} градусов") + "\n";
+            msg = msg + ($"Угол к плоскости XY: {angleToXY} градусов") + "\n";
+
+            msg = msg + ($"Сонаправленность нормалей:") + "\n";
+            msg = msg + ($"Нормаль к плоскости YZ сонаправлена: {alignedWithYZ}") + "\n";
+            msg = msg + ($"Нормаль к плоскости XZ сонаправлена: {alignedWithXZ}") + "\n";
+            msg = msg + ($"Нормаль к плоскости XZ сонаправлена: {alignedWithXY}") + "\n";
+
+            msg = msg + ($"Напрвление:") + "\n";
+            msg = msg + ($"Rigth: {isFlipedX}") + "\n";
+            msg = msg + ($"Top: {isFlipedY}") + "\n";
+            msg = msg + ($"Left: {isFlipedZ}") + "\n";
         }
-        public static void CalculateAngleDirectionWithGlobalPlanes(double[] localNormal, double[] globalNormal)
+        public static bool CalculateAngleDirectionWithGlobalPlanes(double[] localNormal, double[] globalNormal)
         {
             // Векторное произведение нормалей плоскостей
             double[] crossProduct = CrossProduct(localNormal, globalNormal);
 
             // Определяем направление угла
-            string direction = crossProduct[2] > 0 ? "по часовой стрелке" : "против часовой стрелки";
+            bool direction = crossProduct[2] > 0 ? true : false;          //"по часовой стрелке" : "против часовой стрелки";
 
-            Console.WriteLine($"Направление угла между плоскостями: {direction}");
+            return direction;
         }
 
         private static double[] CrossProduct(double[] vector1, double[] vector2)
@@ -398,25 +408,80 @@ namespace MateSwAddIns
             return new double[] { x, y, z };
         }
 
+        /*     private static double CalculateAngleBetweenPlanes(double[] normal1, double[] normal2)
+             {
+                 double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
+                 double magnitude1 = Math.Sqrt(normal1[0] * normal1[0] + normal1[1] * normal1[1] + normal1[2] * normal1[2]);
+                 double magnitude2 = Math.Sqrt(normal2[0] * normal2[0] + normal2[1] * normal2[1] + normal2[2] * normal2[2]);
+
+                 double cosAngle = dotProduct / (magnitude1 * magnitude2);
+                 double angle = Math.Acos(cosAngle) * 180 / Math.PI; // Преобразуем угол из радиан в градусы
+
+                 return angle;
+             }*/
+        /*     private static double CalculateAngleBetweenPlanes(double[] normal1, double[] normal2)
+             {
+                 double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
+                 double magnitude1 = Math.Sqrt(normal1[0] * normal1[0] + normal1[1] * normal1[1] + normal1[2] * normal1[2]);
+                 double magnitude2 = Math.Sqrt(normal2[0] * normal2[0] + normal2[1] * normal2[1] + normal2[2] * normal2[2]);
+                 double cosAngle = dotProduct / (magnitude1 * magnitude2);
+
+                 // Вычисляем угол с сохранением информации о знаке
+                 double angle = Math.Atan2(Math.Sqrt(1 - cosAngle * cosAngle), cosAngle) * 180 / Math.PI;
+
+                 return angle;
+             }*/
+
+ /*       private static double CalculateAngleBetweenPlanes(double[] normal1, double[] normal2)
+        {
+            double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
+            double magnitude1 = Math.Sqrt(normal1[0] * normal1[0] + normal1[1] * normal1[1] + normal1[2] * normal1[2]);
+            double magnitude2 = Math.Sqrt(normal2[0] * normal2[0] + normal2[1] * normal2[1] + normal2[2] * normal2[2]);
+            double cosAngle = dotProduct / (magnitude1 * magnitude2);
+
+            // Вычисляем угол в радианах
+            double angleRad = Math.Acos(cosAngle);
+
+            // Преобразуем угол из радиан в градусы
+            double angle = angleRad * (180.0 / Math.PI);
+
+            // Вычисляем знак угла
+            double sign = normal1[0] * normal2[1] - normal1[1] * normal2[0];
+            if (sign < 0)
+            {
+                angle = -angle;
+            }
+
+            return angle;
+        }*/
         private static double CalculateAngleBetweenPlanes(double[] normal1, double[] normal2)
         {
             double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
             double magnitude1 = Math.Sqrt(normal1[0] * normal1[0] + normal1[1] * normal1[1] + normal1[2] * normal1[2]);
             double magnitude2 = Math.Sqrt(normal2[0] * normal2[0] + normal2[1] * normal2[1] + normal2[2] * normal2[2]);
-
             double cosAngle = dotProduct / (magnitude1 * magnitude2);
-            double angle = Math.Acos(cosAngle) * 180 / Math.PI; // Преобразуем угол из радиан в градусы
+
+            // Вычисляем угол в радианах
+            double angleRad = Math.Acos(cosAngle);
+
+            // Преобразуем угол из радиан в градусы
+            double angle = angleRad * (180.0 / Math.PI);
+
+            // Вычисляем знак угла
+            double sign = normal1[0] * normal2[1] - normal1[1] * normal2[0];
+            if (sign < 0)
+            {
+                angle = -angle;
+            }
 
             return angle;
         }
-
         private static bool AreNormalsAligned(double[] normal1, double[] normal2)
         {
             double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
             return dotProduct > 0;
         }
-
-
+    
 
     }
 }

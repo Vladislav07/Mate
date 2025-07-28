@@ -90,7 +90,15 @@ namespace AddInPageMate
                 double[] arrayMatrixComp = (double[])compInNewSKR.ArrayData;
                 List<LocationComponent> components;
                 bool res = DetermineAngleAndPosition(arrayMatrixComp, out components);
-                
+                int u= 0;
+                components.ForEach(comp =>
+                {
+                    comp.baseComp = nameBase;
+                    comp.childComp = nChild;
+                    comp.PlanBaseComp = planeBase[u];
+                    comp.PlanComp = planeBase[u];
+                    u++;
+                });
                 if (res) {
                     DeletingMateComp(compChild);
                     AddMate(components);
@@ -299,7 +307,7 @@ namespace AddInPageMate
                 boolstat = swDocExt.SelectByID2(FirstSelection, orientation.TypeSelect, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
                 boolstat = swDocExt.SelectByID2(SecondSelection, orientation.TypeSelectBase, 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
         
-                matefeature = (Feature)swAssemblyDoc.AddMate3((int)orientation.mateType, (int)align, flipped, distance, distance, distance, 0, 0, angle, angle, angle, false, out mateError);
+                matefeature = (Feature)swAssemblyDoc.AddMate4((int)orientation.mateType, (int)align, flipped, distance, distance, distance, 0, 0, angle, angle, angle, false, false, out mateError);
                 if(matefeature == null)
                 {
                     Console.WriteLine(mateError.ToString());
@@ -355,7 +363,7 @@ namespace AddInPageMate
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    resultArray[i, j] = list[index];
+                    resultArray[j, i] = list[index];
                     index++;
                 }
             }
@@ -363,23 +371,43 @@ namespace AddInPageMate
 
             return true;
         }
-
-        private static LocationComponent GetLocationAngleComp(double angle,bool flip, bool direction, string plane)
+        private static LocationComponent GetLocationAngleComp(double angle, bool flip, bool direction)
         {
-         
             LocationComponent locationComp = new LocationComponent();
-            locationComp.Fliped=flip;
-            locationComp.PlanComp = plane;
-            locationComp.childComp=plane;
+            double temp = angle * 180 / Math.PI;
+            switch (temp)
+            {
+                case double val when val > -90 && val < 0:
+                    angle = -angle;
+                  
+                    break;
+                case double val when val > -180 && val < -90:
+                    angle=Math.PI + angle;
+                       flip = !flip;                
+                    break;
+                case double val when val > 90 && val < 180:
+                    angle = Math.PI - angle;
+                    
+                    break;
+                case double val when val < 90 && val > 0:
+                    flip = !flip;
+                    break;
+                default:
+                    break;
+            }
+
+            locationComp.Fliped = flip;
+
+            locationComp.Align = !direction ? swMateAlign_e.swAlignSAME:swMateAlign_e.swAlignAGAINST;
+
             locationComp.TypeSelectBase = "PLANE";
             locationComp.TypeSelect = "PLANE";
             locationComp.dist = 0;
             locationComp.mateType = swMateType_e.swMateANGLE;
-            locationComp.Align = direction? swMateAlign_e.swMateAlignALIGNED: swMateAlign_e.swMateAlignANTI_ALIGNED;
             locationComp.Angle = angle;
+
             return locationComp;
         }
-
         private static List<LocationComponent> CalculateAnglesAndAlignmentWithGlobalPlanes(double[,] localTransformationMatrix)
         {
             List<LocationComponent> components = new List<LocationComponent>();
@@ -407,11 +435,11 @@ namespace AddInPageMate
             bool isFlipedY = CalculateAngleDirectionWithGlobalPlanes(localNormalY, globalNormalXZ);
             bool isFlipedZ = CalculateAngleDirectionWithGlobalPlanes(localNormalZ, globalNormalXY);
 
-            LocationComponent locationCompX = GetLocationAngleComp(angleToYZ, isFlipedX, alignedWithYZ, "Rigth");
+            LocationComponent locationCompX = GetLocationAngleComp(angleToYZ, isFlipedX, alignedWithYZ);
             components.Add(locationCompX);               
-            LocationComponent locationCompY = GetLocationAngleComp(angleToXZ, isFlipedY, alignedWithXZ, "Top");
+            LocationComponent locationCompY = GetLocationAngleComp(angleToXZ, isFlipedY, alignedWithXZ);
             components.Add(locationCompY);               
-            LocationComponent locationCompZ = GetLocationAngleComp(angleToXY, isFlipedZ, alignedWithXY, "Front");
+            LocationComponent locationCompZ = GetLocationAngleComp(angleToXY, isFlipedZ, alignedWithXY);
             components.Add(locationCompZ);
 
             return components;
@@ -422,11 +450,18 @@ namespace AddInPageMate
             double magnitude1 = Math.Sqrt(normal1[0] * normal1[0] + normal1[1] * normal1[1] + normal1[2] * normal1[2]);
             double magnitude2 = Math.Sqrt(normal2[0] * normal2[0] + normal2[1] * normal2[1] + normal2[2] * normal2[2]);
             double cosAngle = dotProduct / (magnitude1 * magnitude2);
-            double angle = Math.Acos(cosAngle) * 180 / Math.PI; // Преобразуем угол из радиан в градусы
+
+            // Вычисляем угол в радианах
+            double angle = Math.Acos(cosAngle);
+            // Вычисляем знак угла
+            double sign = normal1[0] * normal2[1] - normal1[1] * normal2[0];
+            if (sign < 0)
+            {
+                angle = -angle;
+            }
 
             return angle;
         }
-
         private static bool AreNormalsAligned(double[] normal1, double[] normal2)
         {
             double dotProduct = normal1[0] * normal2[0] + normal1[1] * normal2[1] + normal1[2] * normal2[2];
@@ -439,7 +474,6 @@ namespace AddInPageMate
             // Определяем направление угла
             return crossProduct[2] > 0 ? true : false;         //"по часовой стрелке" : "против часовой стрелки"; 
         }
-
         private static double[] CrossProduct(double[] vector1, double[] vector2)
         {
             double x = vector1[1] * vector2[2] - vector1[2] * vector2[1];
