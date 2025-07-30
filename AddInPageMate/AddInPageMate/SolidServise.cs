@@ -88,22 +88,18 @@ namespace AddInPageMate
                 MathTransform compInNewSKR = (MathTransform)swTrChild.Multiply(MtrInvPlaneBase.Inverse());
 
                 double[] arrayMatrixComp = (double[])compInNewSKR.ArrayData;
-                List<LocationComponent> components;
-                bool res = DetermineAngleAndPosition(arrayMatrixComp, out components);
-                int u= 0;
-                components.ForEach(comp =>
-                {
-                    comp.baseComp = nameBase;
-                    comp.childComp = nChild;
-                    comp.PlanBaseComp = planeBase[u];
-                    comp.PlanComp = planeBase[u];
-                    u++;
-                });
+ 
+                bool res = DetermineAngleAndPosition(arrayMatrixComp, ref listLocComp);
                 if (res) {
-                    DeletingMateComp(compChild);
-                    AddMate(components);
-                    components=null;
-                    return true;
+                    int u= 0;
+                    listLocComp.ForEach(comp =>
+                    {
+                        comp.baseComp = nameBase;
+                        comp.childComp = nChild;
+                        comp.PlanBaseComp = planeBase[u];
+                        comp.PlanComp = planeBase[u];
+                        u++;
+                    });
                 }
                     
 
@@ -130,7 +126,7 @@ namespace AddInPageMate
                     l.PlanBaseComp = planeBase[i];
                     l.TypeSelectBase = "PLANE";
                     l.mateType = swMateType_e.swMateDISTANCE;
-                    l = IsFlipedAndAlign(l, listVecor[i], coord[i], planeComp, angleComp, planeBase[i]);
+                    l = IsFlipedAndAlign(l, listVecor[i], coord[i], planeComp, angleComp, planeBase[i], i);
                     l.dist = Math.Abs(Math.Round(coord[i], 3));
                     l.Angle = 0;
                     listLocComp.Add(l);
@@ -146,12 +142,15 @@ namespace AddInPageMate
                     angleComp.mateType= swMateType_e.swMateANGLE;
                     DetermineTransformation(angleComp.GetMatr(), angleComp);
                     angleComp.dist = 0;
+                    listLocComp.Add(angleComp);
                 }
-                listLocComp.Add(angleComp);
-                DeletingMateComp(compChild);
-                AddMate(listLocComp);
-                listLocComp.Clear();
+
+                
+                DeletingMateComp(compChild); 
             }
+            
+            AddMate(listLocComp);
+            listLocComp.Clear();
           
             return true;
         }
@@ -188,7 +187,7 @@ namespace AddInPageMate
             return m;
 
         }
-        private static LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, string[]planeComp, LocationAngleComp angleComp, string planeBase)
+        private static LocationComponent IsFlipedAndAlign(LocationComponent loc, MathVector vector, double coord, string[]planeComp, LocationAngleComp angleComp, string planeBase, int step)
         {
   
             double[] orientation = (double[])vector.ArrayData;
@@ -233,10 +232,15 @@ namespace AddInPageMate
                         break;
                    
                     case double val when val >= 0.1 && val <= 0.99 || val >= -0.99 && val <= -0.1:
+                        angleComp.PlanBaseComp = planeBase;
+                        angleComp.PlanComp = planeComp[i];
+                        angleComp.SetNextValue(Math.Round(temp, 3), planeComp[i]);
+                        if (step != i) break;
+
                         loc.PlanComp = "Point1@Origin";
                         loc.Align = swMateAlign_e.swAlignAGAINST;
                         loc.TypeSelect = "EXTSKETCHPOINT";
-                       
+
                         if (coord > 0) {
                             loc.Fliped = false;
                         }
@@ -244,9 +248,7 @@ namespace AddInPageMate
                         {
                             loc.Fliped = true;
                         }
-                        angleComp.PlanBaseComp = planeBase;
-                        angleComp.PlanComp = planeComp[i];
-                        angleComp.SetNextValue(Math.Round(temp, 3), planeComp[i]);                   
+                                          
                         break;
                 }
             }
@@ -350,24 +352,24 @@ namespace AddInPageMate
             angleComp.Fliped = !direction;
      
         }
-        public static bool DetermineAngleAndPosition(double[] arrMatrix, out List<LocationComponent> locationComp)
+        public static bool DetermineAngleAndPosition(double[] arrMatrix, ref List<LocationComponent> locationComp)
         {
             List<double> list = arrMatrix.Take(9).ToList();
             list.ForEach(n => Math.Round(n, 3));
-            locationComp = null;
             if (list.Any(n=>n==0))return false;
             double[,] resultArray = new double[3, 3];
       
             int index = 0;
             for (int i = 0; i < 3; i++)
             {
+          
                 for (int j = 0; j < 3; j++)
                 {
                     resultArray[j, i] = list[index];
                     index++;
                 }
             }
-            locationComp = CalculateAnglesAndAlignmentWithGlobalPlanes(resultArray);
+            locationComp.AddRange(CalculateAnglesAndAlignmentWithGlobalPlanes(resultArray));
 
             return true;
         }
