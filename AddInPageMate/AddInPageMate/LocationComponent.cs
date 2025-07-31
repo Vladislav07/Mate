@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 
 namespace AddInPageMate
@@ -88,12 +89,20 @@ namespace AddInPageMate
         }
 
     }
-    internal class ComponentCuby
+    internal class CompLocation
     {
-        string[] planesBase;
-       public ComponentCuby(string[] _planesBase)
+        public string[] planesBase { get;}
+        public string nChild { get;}
+        public MathTransform compInNewSKR {  get; }
+
+       public CompLocation(string nameComp, string[] _planesBase, MathTransform m)
         {
+            nChild = nameComp; 
             planesBase = _planesBase;
+            compInNewSKR = m;
         }
+
     }
+
+  
 }
