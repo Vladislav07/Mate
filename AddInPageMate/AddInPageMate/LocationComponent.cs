@@ -95,13 +95,25 @@ namespace AddInPageMate
         public string nChild { get;}
         public MathTransform compInNewSKR {  get; }
 
-       public CompLocation(string nameComp, string[] _planesBase, MathTransform m)
+        public string[] planesParent {  get;}
+        public string nameParent { get; }
+
+        public CompLocation(string nameComp, string[] _planesBase, MathTransform m, string[] _planesParent, string _nameParent)
         {
             nChild = nameComp; 
             planesBase = _planesBase;
             compInNewSKR = m;
+            planesParent = _planesParent;
+            nameParent = _nameParent;
         }
 
+    }
+
+    internal class ElementLocation
+    {
+        public string[] planesBase { get; set; }
+        public string name { get; set; }
+        public MathTransform m { get; set; }
     }
 
   

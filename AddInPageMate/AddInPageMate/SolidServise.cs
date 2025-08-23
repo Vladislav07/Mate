@@ -49,11 +49,13 @@ namespace AddInPageMate
             swConf = (Configuration)swConfMgr.ActiveConfiguration;
             swRootComp = (Component2)swConf.GetRootComponent();
         }
-        private static CompLocation GetLocation(Component2 compChild, MathTransform trBase)
+        private static CompLocation GetLocation(Component2 compChild, MathTransform MtrInvPlaneBase,string[] planeBase, string nameBase )
         {
             MathTransform swTrChild = (MathTransform)compChild.Transform2;
+
+            MathTransform trBase = MtrInvPlaneBase;
             MathTransform compInNewSKR = (MathTransform)swTrChild.Multiply(trBase.Inverse());
-            CompLocation compLocation=new CompLocation(compChild.Name2, GetPlanesComp(compChild), compInNewSKR);
+            CompLocation compLocation=new CompLocation(compChild.Name2, GetPlanesComp(compChild), compInNewSKR, planeBase, nameBase);
             return compLocation;
 
         }
@@ -90,23 +92,24 @@ namespace AddInPageMate
             foreach (Component2 item in childrens)
             {
                 if (item == null) continue;
-                CompLocation compLocation=GetLocation(item, MtrInvPlaneBase);
+                CompLocation compLocation=GetLocation(item, MtrInvPlaneBase, planeBase, nameBase);
                 LocationAngleComp angleComp = new LocationAngleComp();
                 Component2 compChild = item;
 
                 bool res = DetermineAngleAndPosition(compLocation, ref listLocComp);
-                if (res) {
-                    int u= 0;
+                if (res)
+                {
+                    int u = 0;
                     listLocComp.ForEach(comp =>
                     {
-                        comp.baseComp = nameBase;
+                        comp.baseComp = compLocation.nameParent;
                         comp.childComp = compLocation.nChild;
-                        comp.PlanBaseComp = planeBase[u];
+                        comp.PlanBaseComp = compLocation.planesParent[u];
                         comp.PlanComp = compLocation.planesBase[u];
                         u++;
                     });
                 }
-                    
+
 
                 double ScaleOutb = 0;
                 Object Xch = null;
@@ -126,12 +129,12 @@ namespace AddInPageMate
                 for (int i = 0; i <3; i++)
                 {
                     LocationComponent l = new LocationComponent();
-                    l.baseComp = nameBase;
+                    l.baseComp = compLocation.nameParent;
                     l.childComp = compLocation.nChild;
-                    l.PlanBaseComp = planeBase[i];
+                    l.PlanBaseComp = compLocation.planesParent[i];
                     l.TypeSelectBase = "PLANE";
                     l.mateType = swMateType_e.swMateDISTANCE;
-                    l = IsFlipedAndAlign(l, listVecor[i], coord[i], compLocation.planesBase, angleComp, planeBase[i], i);
+                    l = IsFlipedAndAlign(l, listVecor[i], coord[i], compLocation.planesBase, angleComp, compLocation.planesParent[i], i);
                     l.dist = Math.Abs(Math.Round(coord[i], 3));
                     l.Angle = 0;
                     listLocComp.Add(l);
@@ -140,7 +143,7 @@ namespace AddInPageMate
                
                 if (angleComp.LT != 0)
                 {
-                    angleComp.baseComp = nameBase;
+                    angleComp.baseComp = compLocation.nameParent;
                     angleComp.childComp = compLocation.nChild;
                     angleComp.TypeSelectBase = "PLANE";
                     angleComp.TypeSelect = "PLANE";
@@ -253,6 +256,10 @@ namespace AddInPageMate
                         {
                             loc.Fliped = true;
                         }
+                        else
+                        {
+                            loc.mateType = swMateType_e.swMateCOINCIDENT;
+                        }
                                           
                         break;
                 }
@@ -305,7 +312,7 @@ namespace AddInPageMate
             string MateName;
             Feature matefeature;
 
-            FirstSelection = planePart + "@" + orientation.childComp;  // +"@" + AssemblyName;
+            FirstSelection = planePart + "@" + orientation.childComp + "@" + orientation.baseComp;
             SecondSelection = orientation.PlanBaseComp + "@" + orientation.baseComp;
             MateName = planePart;
             swModel.ClearSelection2(true);
