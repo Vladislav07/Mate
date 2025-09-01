@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
-
+using CodeStack.SwEx.Common;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using CodeStack.SwEx.PMPage;
-using CodeStack.SwEx.Common;
+
 
 namespace MacroTest
 {

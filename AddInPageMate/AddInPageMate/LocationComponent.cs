@@ -21,6 +21,8 @@ namespace AddInPageMate
         public string TypeSelect;
         public string TypeSelectBase;
         public double Angle;
+       
+
     }
     public class LocationAngleComp: LocationComponent
     {
@@ -87,34 +89,45 @@ namespace AddInPageMate
         {
             return matr;
         }
+        public void SetPlane()
+        {
+            this.PlanComp = plane[3];
 
+        }
     }
     internal class CompLocation
     {
-        public string[] planesBase { get;}
+        public double[] matrixSw;
+        public string[] planes { get;}
         public string nChild { get;}
-        public MathTransform compInNewSKR {  get; }
+        private MathTransform compInNewSKR {  get; }
 
         public string[] planesParent {  get;}
         public string nameParent { get; }
+        public List<string> listNameMate;
 
-        public CompLocation(string nameComp, string[] _planesBase, MathTransform m, string[] _planesParent, string _nameParent)
+        double ScaleOutb = 0;
+        Object Xch = null;
+        Object Ych = null;
+        Object Zch = null;
+        Object TrObjOutch = null;
+        double ScaleOutch = 0;
+        public MathVector[] listVector;
+        public double[] coord;
+        public CompLocation(string nameComp, string[] _planes, MathTransform m, string[] _planesParent, string _nameParent)
         {
             nChild = nameComp; 
-            planesBase = _planesBase;
+            planes = _planes;
             compInNewSKR = m;
             planesParent = _planesParent;
             nameParent = _nameParent;
+            compInNewSKR.GetData(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
+            listVector = new MathVector[3];
+            listVector[0] = (MathVector) Xch;
+            listVector[1] = (MathVector) Ych;
+            listVector[2] = (MathVector) Zch;
+            coord = (double[])((MathVector)TrObjOutch).ArrayData;
         }
-
-    }
-
-    internal class ElementLocation
-    {
-        public string[] planesBase { get; set; }
-        public string name { get; set; }
-        public MathTransform m { get; set; }
-    }
-
-  
+ 
+    } 
 }

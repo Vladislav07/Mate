@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>true</RegisterForComInterop>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,36 +32,28 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CodeStack.SwEx.AddIn, Version=0.8.1.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\CodeStack.SwEx.AddIn.0.8.1\lib\net40\CodeStack.SwEx.AddIn.dll</HintPath>
+    <Reference Include="CodeStack.SwEx.AddIn, Version=0.8.0.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
+      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstaWA6UU3O2OEibgrBXMgGlEw\packages\CodeStack.SwEx.AddIn.0.8.0\lib\net40\CodeStack.SwEx.AddIn.dll</HintPath>
       <Private>True</Private>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="CodeStack.SwEx.Common, Version=0.9.9.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\CodeStack.SwEx.Common.dll</HintPath>
+    <Reference Include="CodeStack.SwEx.Common">
+      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstaWA6UU3O2OEibgrBXMgGlEw\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\CodeStack.SwEx.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="CodeStack.SwEx.PMPage, Version=0.7.1.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
+      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstaWA6UU3O2OEibgrBXMgGlEw\packages\CodeStack.SwEx.PMPage.0.7.1\lib\net40\CodeStack.SwEx.PMPage.dll</HintPath>
       <Private>True</Private>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
-    <Reference Include="CodeStack.SwEx.PMPage, Version=0.7.2.0, Culture=neutral, PublicKeyToken=a46023996d4724e7, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\CodeStack.SwEx.PMPage.0.7.2\lib\net40\CodeStack.SwEx.PMPage.dll</HintPath>
-      <Private>True</Private>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+    <Reference Include="SolidWorks.Interop.sldworks">
+      <HintPath>C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SolidWorks.Interop.sldworks.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="SolidWorks.Interop.sldworks, Version=27.1.0.72, Culture=neutral, PublicKeyToken=7c4797c3e4eeac03, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.sldworks.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+    <Reference Include="SolidWorks.Interop.swconst">
+      <HintPath>C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SolidWorks.Interop.swconst.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="SolidWorks.Interop.swconst, Version=27.1.0.72, Culture=neutral, PublicKeyToken=19f43e188e4269d8, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.swconst.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="SolidWorks.Interop.swpublished, Version=27.1.0.72, Culture=neutral, PublicKeyToken=89a97bdc5284e6d8, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorks.Interop.swpublished.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
-    <Reference Include="SolidWorksTools, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bd18593873b4686d, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\CodeStack.SwEx.Common.0.9.9\lib\net40\SolidWorksTools.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="SolidWorks.Interop.swpublished">
+      <HintPath>C:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SolidWorks.Interop.swpublished.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -71,7 +64,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Xarial.VPages.Framework, Version=0.4.0.0, Culture=neutral, PublicKeyToken=6dcec729ca6a1943, processorArchitecture=MSIL">
-      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstacSQZLkD1pEiVAQ69GYl0mw\packages\Xarial.VPages.Framework.0.4.0\lib\net40\Xarial.VPages.Framework.dll</HintPath>
+      <HintPath>C:\Users\v.belov\AppData\Local\Temp\Vsta\VSTAConsoleApp\VstaWA6UU3O2OEibgrBXMgGlEw\packages\Xarial.VPages.Framework.0.4.0\lib\net40\Xarial.VPages.Framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -89,6 +82,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
