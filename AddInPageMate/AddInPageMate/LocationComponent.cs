@@ -1,10 +1,11 @@
-﻿using System;
+﻿using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SolidWorks.Interop.sldworks;
-using SolidWorks.Interop.swconst;
 
 namespace AddInPageMate
 {
@@ -100,7 +101,7 @@ namespace AddInPageMate
         public double[] matrixSw;
         public string[] planes { get;}
         public string nChild { get;}
-        private MathTransform compInNewSKR {  get; }
+        public MathTransform compInNewSKR {  get; }
 
         public string[] planesParent {  get;}
         public string nameParent { get; }
@@ -129,5 +130,90 @@ namespace AddInPageMate
             coord = (double[])((MathVector)TrObjOutch).ArrayData;
         }
  
-    } 
+    }
+    public class ElementSW
+    {
+        public double[] matrixSw {  get; set; }
+        public string[] planes { get; }
+        public string nameSwComponent { get; }
+
+        public List<LocationComponent> listLocComp;
+
+        public List<string> listNameMate;
+        public MathTransform compTransform;
+       
+        public MathVector[] listVector;
+        public double[] coord;
+
+        public ElementSW(string nameComp, string[] _planes, double[] _matrixSw)
+        {
+            nameSwComponent = nameComp;
+            planes = _planes;
+            matrixSw = _matrixSw;
+            compTransform = InitializeMathTransform(matrixSw);
+          
+        }
+        public ElementSW(Component2 comp)
+        {
+            nameSwComponent = comp.Name2;
+            planes = GetPlanesComp(comp);
+            compTransform = (MathTransform)comp.Transform2;       
+            matrixSw = (double[])compTransform.ArrayData;
+         
+        }
+
+        public void InitVector(MathTransform rootTrans)
+        { 
+            double ScaleOutb = 0;
+            Object Xch = null;
+            Object Ych = null;
+            Object Zch = null;
+            Object TrObjOutch = null;
+            double ScaleOutch = 0;
+
+            MathTransform compInNewSKR = (MathTransform)compTransform.Multiply(rootTrans.Inverse());
+            compInNewSKR.GetData(ref Xch, ref Ych, ref Zch, ref TrObjOutch, ref ScaleOutch);
+            listVector = new MathVector[3];
+            listVector[0] = (MathVector)Xch;
+            listVector[1] = (MathVector)Ych;
+            listVector[2] = (MathVector)Zch;
+            coord = (double[])((MathVector)TrObjOutch).ArrayData;
+            listLocComp = new List<LocationComponent>();
+        }
+        private MathTransform InitializeMathTransform(double[] transformArray)
+        {
+            MathTransform transform;
+            if (SolidServise.utility == null)
+            {
+                SldWorks sldWorks=new SldWorks();
+                IMathUtility mathUtility = (MathUtility)sldWorks.GetMathUtility();
+                transform = (MathTransform)mathUtility.CreateTransform(transformArray);
+            }
+            else
+            {
+                transform = (MathTransform)SolidServise.utility.CreateTransform(transformArray);
+            }
+
+
+                return transform;
+        }
+        private string[] GetPlanesComp(Component2 comp)
+        {
+            Feature swFeat = comp.FirstFeature();
+            string[] planesBase = new string[3];
+            int i = 2;
+            while (swFeat != null)
+            {
+                if ("RefPlane" == swFeat.GetTypeName())
+                {
+                    planesBase[i] = swFeat.Name;
+                    i--;
+                }
+                if (i < 0) break;
+                swFeat = swFeat.GetNextFeature() as Feature;
+            }
+            return planesBase;
+        }
+
+    }
 }

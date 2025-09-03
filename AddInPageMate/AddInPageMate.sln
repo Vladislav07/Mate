@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.35431.46
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddInPageMate", "AddInPageMate\AddInPageMate.csproj", "{9EEB8FA4-148F-40C6-8169-07CD7AD6112E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPageMate", "TestPageMate\TestPageMate.csproj", "{9C43D218-297C-4EBC-95B9-C32B6687944F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{9EEB8FA4-148F-40C6-8169-07CD7AD6112E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9EEB8FA4-148F-40C6-8169-07CD7AD6112E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9EEB8FA4-148F-40C6-8169-07CD7AD6112E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C43D218-297C-4EBC-95B9-C32B6687944F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C43D218-297C-4EBC-95B9-C32B6687944F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C43D218-297C-4EBC-95B9-C32B6687944F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C43D218-297C-4EBC-95B9-C32B6687944F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

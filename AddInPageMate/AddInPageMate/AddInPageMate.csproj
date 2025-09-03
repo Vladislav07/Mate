@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddInMain.cs" />
+    <Compile Include="LocalStorage.cs" />
     <Compile Include="LocationComponent.cs" />
     <Compile Include="MatePmpHandler.cs" />
     <Compile Include="Model.cs" />

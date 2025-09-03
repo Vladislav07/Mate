@@ -45,6 +45,14 @@ namespace AddInPageMate
         [ControlTag(nameof(Left))]
         public bool Left { get; set; }
         public Action CreateMate => OnBtnClick;
+        public Action WriteModel => OnWriteClick;
+
+        private void OnWriteClick()
+        {
+            if (components.Count == 0) return;
+            SolidServise.Proccesing(this);
+        }
+
         private void OnBtnClick()
         {
             if (components.Count == 0) return;
