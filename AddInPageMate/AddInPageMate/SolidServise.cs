@@ -83,7 +83,7 @@ namespace AddInPageMate
             foreach (Component2 item in childrens)
             {
                 ElementSW x = new ElementSW(item);
-                if(x!=null) x.DeletingPairing += X_DeletingPairing;
+                if(x!=null) x.DeletingPairing += (message) => X_DeletingPairing(message);
             }
 
             CreatePairingMultyComp(rootElement, listElement);
@@ -95,7 +95,7 @@ namespace AddInPageMate
 
         private static void X_DeletingPairing(string nameMate)
         {
-            swModel.ClearSelection2(true);
+             swModel.ClearSelection2(true);
              boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
              swModel.EditSuppress2();
         }
@@ -119,7 +119,7 @@ namespace AddInPageMate
                 List<int> angleIndex = new List<int>();
                 
                 bool isAngle=false;
-                LocationComponent l = childElement.CreateLocalComponent();
+                LocationComponent l = childElement.CreateLocalComponent(0);
                 l.baseComp = rootElement.nameSwComponent;
                 l.childComp = childElement.nameSwComponent;
                 l.PlanBaseComp = rootElement.planes[i];
@@ -172,9 +172,9 @@ namespace AddInPageMate
         private static LocationAngleComp CreateAngleLocation(ElementSW childElement, List<int> angleIndexMatrix,
             ElementSW rootElement, int angleBasePlaneIndex)
         {
-            LocationAngleComp angleComp = new LocationAngleComp();
-
-            foreach(int item in angleIndexMatrix) 
+            LocationAngleComp angleComp = (LocationAngleComp)childElement.CreateLocalComponent(1);
+       
+            foreach (int item in angleIndexMatrix) 
             {
                     angleComp.SetNextValue(Math.Round(childElement.matrixSw[item], 5), childElement.planes[item%3]);
             }
@@ -245,44 +245,8 @@ namespace AddInPageMate
             return false;
 
         }
+ 
 
-   
-   
-        private static MathTransform CreateRootMathTr()
-        {
-            double[] arr=new double[16];
-
-            arr[0] = 1;   arr[1] = 0;  arr[2] = 0;
-            arr[3] = 0;   arr[4] = 1;  arr[5]=0;
-            arr[6] = 0;   arr[7] = 0;  arr[8] = 1;
-            arr[9] = 0;   arr[10] = 0; arr[11] = 0;
-            arr[12] = 1;
-            arr[13] = 0;  arr[14] = 0; arr[15] = 0;
-            MathTransform m = (MathTransform)utility.CreateTransform(arr);
-            return m;
-
-        }   
-/*        private static List<string> GetMate(Component2 swComp)
-        {
-            var Mates = (Object[])swComp.GetMates();
-            List<string> listNameMate=new List<string>();
-            if ((Mates != null))
-            {
-                Feature f;
-                string nameMate;
-                foreach (Object SingleMate in Mates)
-                {
-                    if (SingleMate is Mate2)
-                    {
-                        swMate = (Mate2)SingleMate;
-                        f = (Feature)swMate;
-                        nameMate = f.Name;
-                        listNameMate.Add(nameMate);
-                    }
-                }
-            }
-            return listNameMate;
-        }*/
         private static void AddMate(List<LocationComponent> orientation)
         {   
             foreach (LocationComponent compLocal in orientation)
@@ -317,12 +281,14 @@ namespace AddInPageMate
         
                 matefeature = (Feature)swAssemblyDoc.AddMate4((int)orientation.mateType, (int)align, flipped, distance, distance,
                     distance, 0, 0, angle, angle, angle, false, false, out mateError);
-                if(matefeature == null)
-                {
-                    Console.WriteLine(mateError.ToString());
-                }
+               
+             
                 matefeature.Name = MateName;
                 swAssemblyDoc.EditRebuild();
+                if(mateError == 5)
+                {
+                    orientation.InvokeOverDefiningAssembly();
+                }
             }
          
             catch (Exception ex)
@@ -364,7 +330,7 @@ namespace AddInPageMate
         {
             double[] arrMatrix = (double[])trans.ArrayData;
             List<double> list = arrMatrix.Take(9).ToList();
-           // list.ForEach(n => Math.Round(n, 5));
+       
             double[,] resultArray = new double[3, 3];
 
             int index = 0;

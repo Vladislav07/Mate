@@ -164,6 +164,7 @@ namespace AddInPageMate
             planes = GetPlanesComp(comp);
             compTransform = (MathTransform)comp.Transform2;       
             matrixSw = (double[])compTransform.ArrayData;
+           
             GetMate(comp);
         }
 
@@ -186,9 +187,7 @@ namespace AddInPageMate
                         f = (Feature)swMate;
                         nameMate = f.Name;
                         listFeatureMate.Add(f);
-                       // swModel.ClearSelection2(true);
-                       // boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
-                       // swModel.EditSuppress2();
+
                     }
                 }
             }
@@ -247,14 +246,21 @@ namespace AddInPageMate
             return planesBase;
         }
 
-        public LocationComponent CreateLocalComponent()
+        public LocationComponent CreateLocalComponent(int typeLoc)
         {
-            LocationComponent component = new LocationComponent();
-            component.OverDefiningAssembly += Component_OverDefiningAssembly;
+            LocationComponent component;
+            if (typeLoc == 0)
+            {
+                component = new LocationComponent();
+            }else 
+            {
+                component = new LocationAngleComp();
+            }
+                component.OverDefiningAssembly += Component_OverDefiningAssembly;
             return component;
         }
 
-        private void Component_OverDefiningAssembly()
+        protected void Component_OverDefiningAssembly()
         {
             bool IsWarning;
             string nameFeature;
@@ -263,11 +269,11 @@ namespace AddInPageMate
             {
                 errorCode = feat.GetErrorCode2(out IsWarning);
 
-                if (errorCode == 46 || errorCode == 47)
-                {
+               // if (errorCode == 1 ||errorCode == 46 || errorCode == 47)
+               // {
                     nameFeature=feat.Name;
                     DeletingPairing?.Invoke(nameFeature);
-                }
+              //  }
             }
         }
     }
