@@ -27,12 +27,10 @@ namespace AddInPageMate
         private static SelectionMgr swSelMgr;
         private static Dictionary<string, RefPlane> planes;
         private static bool boolstat;
-        private static object[] Mates = null;
-        private static Mate2 swMate;
         private static int mateError;
         private static string nameAssemble;
         private static Component2 swRootComp;
-        //public static event Action MateOverDefining;
+
 
         public static void SetSolidServise(ISldWorks _sldWorks)
         {
@@ -78,17 +76,28 @@ namespace AddInPageMate
                 rootElement = new ElementSW(nameBase, planeBase,arr);
             }
 
-            //listElement.Add(rootElement);
+
             childrens.ForEach(x => { 
              listElement.Add(new ElementSW(x));
             });
-            // LocalStorage.WriteComponents(listElement); 
-           
+            foreach (Component2 item in childrens)
+            {
+                ElementSW x = new ElementSW(item);
+                if(x!=null) x.DeletingPairing += X_DeletingPairing;
+            }
+
             CreatePairingMultyComp(rootElement, listElement);
             foreach (ElementSW item in listElement)
             {
                 AddMate(item.listLocComp);
             }
+        }
+
+        private static void X_DeletingPairing(string nameMate)
+        {
+            swModel.ClearSelection2(true);
+             boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+             swModel.EditSuppress2();
         }
 
         public static void CreatePairingMultyComp(ElementSW rootElement, List<ElementSW> listElement)
@@ -110,7 +119,7 @@ namespace AddInPageMate
                 List<int> angleIndex = new List<int>();
                 
                 bool isAngle=false;
-                LocationComponent l = new LocationComponent();
+                LocationComponent l = childElement.CreateLocalComponent();
                 l.baseComp = rootElement.nameSwComponent;
                 l.childComp = childElement.nameSwComponent;
                 l.PlanBaseComp = rootElement.planes[i];
@@ -252,33 +261,8 @@ namespace AddInPageMate
             MathTransform m = (MathTransform)utility.CreateTransform(arr);
             return m;
 
-        }
-    
-        private static void DeletingMateComp(Component2 swComp)
-        {
-            Mates = (Object[])swComp.GetMates();
-            if ((Mates != null))
-            {
-                Feature f;
-                string nameMate;
-                foreach (Object SingleMate in Mates)
-                {
-                    if (SingleMate is Mate2)
-                    {
-                        swMate = (Mate2)SingleMate;
-
-                        f = (Feature)swMate;
-                        nameMate = f.Name;
-
-                        swModel.ClearSelection2(true);
-                        boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
-                        swModel.EditSuppress2();
-                    }
-                }
-            }
-        }
-
-        private static List<string> GetMate(Component2 swComp)
+        }   
+/*        private static List<string> GetMate(Component2 swComp)
         {
             var Mates = (Object[])swComp.GetMates();
             List<string> listNameMate=new List<string>();
@@ -298,7 +282,7 @@ namespace AddInPageMate
                 }
             }
             return listNameMate;
-        }
+        }*/
         private static void AddMate(List<LocationComponent> orientation)
         {   
             foreach (LocationComponent compLocal in orientation)

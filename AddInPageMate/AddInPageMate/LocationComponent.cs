@@ -22,7 +22,11 @@ namespace AddInPageMate
         public string TypeSelect;
         public string TypeSelectBase;
         public double Angle;
-       
+        public event Action OverDefiningAssembly;
+        public void InvokeOverDefiningAssembly()
+        {
+            OverDefiningAssembly?.Invoke();
+        }
 
     }
     public class LocationAngleComp: LocationComponent
@@ -96,7 +100,7 @@ namespace AddInPageMate
 
         }
     }
-    internal class CompLocation
+/*    internal class CompLocation
     {
         public double[] matrixSw;
         public string[] planes { get;}
@@ -130,7 +134,7 @@ namespace AddInPageMate
             coord = (double[])((MathVector)TrObjOutch).ArrayData;
         }
  
-    }
+    }*/
     public class ElementSW
     {
         public double[] matrixSw {  get; set; }
@@ -139,11 +143,13 @@ namespace AddInPageMate
 
         public List<LocationComponent> listLocComp;
 
-        public List<string> listNameMate;
+        public List<Feature> listFeatureMate;
         public MathTransform compTransform;
        
         public MathVector[] listVector;
         public double[] coord;
+        public event Action<string> DeletingPairing;
+     
 
         public ElementSW(string nameComp, string[] _planes, double[] _matrixSw)
         {
@@ -151,7 +157,6 @@ namespace AddInPageMate
             planes = _planes;
             matrixSw = _matrixSw;
             compTransform = InitializeMathTransform(matrixSw);
-          
         }
         public ElementSW(Component2 comp)
         {
@@ -159,7 +164,34 @@ namespace AddInPageMate
             planes = GetPlanesComp(comp);
             compTransform = (MathTransform)comp.Transform2;       
             matrixSw = (double[])compTransform.ArrayData;
-         
+            GetMate(comp);
+        }
+
+        private void GetMate(Component2 swComp)
+        {
+            object[] Mates = null;
+            Mate2 swMate;
+            Mates = (Object[])swComp.GetMates();
+            if ((Mates != null))
+            {
+                listFeatureMate = new List<Feature>();
+                Feature f;
+                string nameMate;
+                foreach (Object SingleMate in Mates)
+                {
+                    if (SingleMate is Mate2)
+                    {
+                        swMate = (Mate2)SingleMate;
+
+                        f = (Feature)swMate;
+                        nameMate = f.Name;
+                        listFeatureMate.Add(f);
+                       // swModel.ClearSelection2(true);
+                       // boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+                       // swModel.EditSuppress2();
+                    }
+                }
+            }
         }
 
         public void InitVector(MathTransform rootTrans)
@@ -215,5 +247,28 @@ namespace AddInPageMate
             return planesBase;
         }
 
+        public LocationComponent CreateLocalComponent()
+        {
+            LocationComponent component = new LocationComponent();
+            component.OverDefiningAssembly += Component_OverDefiningAssembly;
+            return component;
+        }
+
+        private void Component_OverDefiningAssembly()
+        {
+            bool IsWarning;
+            string nameFeature;
+            int errorCode;
+            foreach (Feature feat in listFeatureMate)
+            {
+                errorCode = feat.GetErrorCode2(out IsWarning);
+
+                if (errorCode == 46 || errorCode == 47)
+                {
+                    nameFeature=feat.Name;
+                    DeletingPairing?.Invoke(nameFeature);
+                }
+            }
+        }
     }
 }
