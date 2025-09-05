@@ -34,22 +34,7 @@ namespace AddInPageMate
                 }
             }
         }
- /*       public static List<ElementSW> ReadComponents()
-        {
-            List<ElementSW> dataList = new List<ElementSW>();
 
-            string[] lines = File.ReadAllLines(path);
-            for (int i = 0; i < lines.Length; i += 6)
-            {
-                double[] matrix = Array.ConvertAll(lines[i + 1].Split(' '), Double.Parse);
-                string[] planes = lines[i + 3].Split(',');
-                string name = lines[i + 5].Substring(lines[i + 5].LastIndexOf(':') + 1).Trim();
-
-                dataList.Add(new ElementSW(name, planes, matrix));
-            }
-
-            return dataList;
-        }*/
         public static List<ElementSW> ReadComponents()
         {
             List<ElementSW> dataList = new List<ElementSW>();

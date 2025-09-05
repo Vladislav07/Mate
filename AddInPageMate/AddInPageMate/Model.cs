@@ -56,7 +56,7 @@ namespace AddInPageMate
         private void OnBtnClick()
         {
             if (components.Count == 0) return;
-            SolidServise.AddPairingMultyComp(this);
+           // SolidServise.AddPairingMultyComp(this);
         }
     }
     public class ComponentLevelFilter : SelectionCustomFilter<Component2>
