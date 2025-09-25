@@ -19,6 +19,7 @@ namespace AddInPageMate
 
     [Message("select components", "Component selection page")]
     [System.ComponentModel.DisplayName("Component selection page")]
+   
     public class Model : INotifyPropertyChanged
     {
         [SelectionBox(typeof(ComponentLevelFilter), swSelectType_e.swSelCOMPONENTS)]
@@ -44,7 +45,7 @@ namespace AddInPageMate
         [SelectionBox(typeof(ComponentBaseLevelFilter), swSelectType_e.swSelCOMPONENTS)]
         [Description("BaseComponent")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
- 
+   
         public Component2 baseComp { get; set; }
 
         [ControlTag(nameof(Right))]
@@ -67,8 +68,7 @@ namespace AddInPageMate
             {
               c.DeSelect();
               c = (Component2)c.GetParent();
-              c.Select2(false, -1);
-                itemText = "Select a fully defined component as the base component";
+              c.Select2(false, -1);            
                 return false;
             }
 
