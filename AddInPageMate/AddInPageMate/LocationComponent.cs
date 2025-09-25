@@ -158,6 +158,7 @@ namespace AddInPageMate
             matrixSw = _matrixSw;
             compTransform = InitializeMathTransform(matrixSw);
         }
+
         public ElementSW(Component2 comp)
         {
             nameSwComponent = comp.Name2;
@@ -165,6 +166,14 @@ namespace AddInPageMate
             compTransform = (MathTransform)comp.Transform2;       
             matrixSw = (double[])compTransform.ArrayData;
            
+            GetMate(comp);
+        }
+        public ElementSW(Component2 comp, string nameRoot)
+        {
+            nameSwComponent = comp.Name2 + "@" + nameRoot;
+            planes = GetPlanesComp(comp);
+            compTransform = (MathTransform)comp.Transform2;
+            matrixSw = (double[])compTransform.ArrayData;
             GetMate(comp);
         }
 
@@ -269,11 +278,12 @@ namespace AddInPageMate
             {
                 errorCode = feat.GetErrorCode2(out IsWarning);
 
-               // if (errorCode == 1 ||errorCode == 46 || errorCode == 47)
-               // {
+                if (errorCode == 1 ||errorCode == 46 || errorCode == 47)
+                {
                     nameFeature=feat.Name;
                     DeletingPairing?.Invoke(nameFeature);
-              //  }
+                }
+               
             }
         }
     }

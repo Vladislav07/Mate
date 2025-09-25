@@ -26,6 +26,9 @@ namespace AddInPageMate
         ISldWorks sldWorks;
         private enum Commands_e
         {
+     
+
+            [CommandItemInfo(true, true,swWorkspaceTypes_e.Assembly)]
             ShowPmpPage
         }
 
@@ -34,6 +37,7 @@ namespace AddInPageMate
             model = new Model();
             pageMate = new PropertyManagerPageEx<MatePmpHandler, Model>(App);
             AddCommandGroup<Commands_e>(ShowPmpPage);
+            AddContextMenu<Commands_e>(ShowPmpPage);
             sldWorks = (ISldWorks)App;
             
             return true;
@@ -54,15 +58,21 @@ namespace AddInPageMate
 
         private void Handler_Closing(swPropertyManagerPageCloseReasons_e reason, CodeStack.SwEx.PMPage.Base.ClosingArg arg)
         {
-            
+                   
         }
 
         private void Handler_Closed(swPropertyManagerPageCloseReasons_e reason)
         {
-         
+            if( reason== swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Okay)
+            {
+                if (model.components.Count == 0) return;
+                SolidServise.Proccesing(model);
+            } 
             pageMate.Handler.Closing-= Handler_Closing;
             pageMate.Handler.Closed-= Handler_Closed;
-            
+            model.components.Clear();
+            model.baseComp= null;
+
 
         }
     }

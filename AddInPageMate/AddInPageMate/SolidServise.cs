@@ -51,12 +51,13 @@ namespace AddInPageMate
         public static void Proccesing(Model model)
         {
             List<ElementSW>listElement = new List<ElementSW>();
-            Component2 rootComponent=(Component2)model.baseComp;
+          Component2 rootComponent=(Component2)model.baseComp;
             List<Component2> childrens = model.components;
             ElementSW rootElement;
             if (rootComponent != null)
             {
-                rootElement = new ElementSW( swRootComp);
+                rootElement = new ElementSW(rootComponent, nameAssemble);
+            
             }
             else
             {
@@ -76,14 +77,11 @@ namespace AddInPageMate
                 rootElement = new ElementSW(nameBase, planeBase,arr);
             }
 
-
-            childrens.ForEach(x => { 
-             listElement.Add(new ElementSW(x));
-            });
             foreach (Component2 item in childrens)
             {
                 ElementSW x = new ElementSW(item);
                 if(x!=null) x.DeletingPairing += (message) => X_DeletingPairing(message);
+                listElement.Add(x);
             }
 
             CreatePairingMultyComp(rootElement, listElement);
@@ -173,10 +171,21 @@ namespace AddInPageMate
             ElementSW rootElement, int angleBasePlaneIndex)
         {
             LocationAngleComp angleComp = (LocationAngleComp)childElement.CreateLocalComponent(1);
-       
+
+            List<double> arrayTransp=new List<double>();
+            arrayTransp.Add(childElement.matrixSw[0]);
+            arrayTransp.Add(childElement.matrixSw[3]);
+            arrayTransp.Add(childElement.matrixSw[6]);
+            arrayTransp.Add(childElement.matrixSw[1]);
+            arrayTransp.Add(childElement.matrixSw[4]);
+            arrayTransp.Add(childElement.matrixSw[7]);
+            arrayTransp.Add(childElement.matrixSw[2]);
+            arrayTransp.Add(childElement.matrixSw[5]);
+            arrayTransp.Add(childElement.matrixSw[8]);
+
             foreach (int item in angleIndexMatrix) 
             {
-                    angleComp.SetNextValue(Math.Round(childElement.matrixSw[item], 5), childElement.planes[item%3]);
+                    angleComp.SetNextValue(Math.Round(arrayTransp[item], 5), childElement.planes[item%3]);
             }
             angleComp.baseComp = rootElement.nameSwComponent;
             angleComp.childComp = childElement.nameSwComponent;
@@ -253,6 +262,7 @@ namespace AddInPageMate
             {
                 AddMateToAssemble(compLocal);    
             }
+            swAssemblyDoc.EditRebuild();
         }
         private static void AddMateToAssemble(LocationComponent orientation)
         {
@@ -270,7 +280,7 @@ namespace AddInPageMate
             string MateName;
             Feature matefeature;
 
-            FirstSelection = planePart + "@" + orientation.childComp + "@" + orientation.baseComp;
+            FirstSelection = planePart + "@" + orientation.childComp + "@" +  nameAssemble;
             SecondSelection = orientation.PlanBaseComp + "@" + orientation.baseComp;
             MateName = planePart;
             swModel.ClearSelection2(true);
@@ -281,14 +291,29 @@ namespace AddInPageMate
         
                 matefeature = (Feature)swAssemblyDoc.AddMate4((int)orientation.mateType, (int)align, flipped, distance, distance,
                     distance, 0, 0, angle, angle, angle, false, false, out mateError);
-               
-             
-                matefeature.Name = MateName;
-                swAssemblyDoc.EditRebuild();
-                if(mateError == 5)
+
+                if (matefeature != null)
                 {
-                    orientation.InvokeOverDefiningAssembly();
+                    matefeature.Name = MateName;
+                    swAssemblyDoc.EditRebuild();
                 }
+
+               if (mateError == 1) {
+
+                    Mate2 mate2 =(Mate2)matefeature.GetSpecificFeature2();
+                    int count = mate2.GetMateEntityCount();
+                    if (count == 2)
+                    {
+                        matefeature = null;
+                       
+                    }
+                 
+                }
+                if(mateError == 5 )
+                    {
+                        orientation.InvokeOverDefiningAssembly();                
+                    }
+                
             }
          
             catch (Exception ex)
