@@ -287,4 +287,16 @@ namespace AddInPageMate
             }
         }
     }
+
+    public struct MateFeature
+    {
+        public bool isBackMate {  get; }
+        public string NameMate { get; }
+        public MateFeature(bool _isBackMate, string _nameMate)
+        {
+            isBackMate = _isBackMate;
+            NameMate = _nameMate;
+        }
+
+    }
 }

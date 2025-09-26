@@ -30,7 +30,7 @@ namespace AddInPageMate
         private static int mateError;
         private static string nameAssemble;
         private static Component2 swRootComp;
-
+        private static  Model model;
 
         public static void SetSolidServise(ISldWorks _sldWorks)
         {
@@ -46,12 +46,14 @@ namespace AddInPageMate
             swConfMgr = (ConfigurationManager)swModel.ConfigurationManager;
             swConf = (Configuration)swConfMgr.ActiveConfiguration;
             swRootComp = (Component2)swConf.GetRootComponent();
+           
         }
 
-        public static void Proccesing(Model model)
+        public static void Proccesing(Model _model)
         {
+            model = _model;
             List<ElementSW>listElement = new List<ElementSW>();
-          Component2 rootComponent=(Component2)model.baseComp;
+            Component2 rootComponent=(Component2)model.baseComp;
             List<Component2> childrens = model.components;
             ElementSW rootElement;
             if (rootComponent != null)
@@ -96,6 +98,9 @@ namespace AddInPageMate
              swModel.ClearSelection2(true);
              boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
              swModel.EditSuppress2();
+            swAssemblyDoc.EditRebuild();
+            model.listMate.Add(new MateFeature(false, nameMate));
+
         }
 
         public static void CreatePairingMultyComp(ElementSW rootElement, List<ElementSW> listElement)
@@ -295,6 +300,8 @@ namespace AddInPageMate
                 if (matefeature != null)
                 {
                     matefeature.Name = MateName;
+                    string nameMate=matefeature.Name;
+                    model.listMate.Add(new MateFeature(false, nameMate));
                     swAssemblyDoc.EditRebuild();
                 }
 
@@ -410,11 +417,14 @@ namespace AddInPageMate
   
         private static bool CalculateAnglesAndAlignmentWithGlobalPlanes(ElementSW elementSW, ElementSW rootElement)
         {
-            double[,] localTransformationMatrix = ConvertMatrixToDoubleArray(elementSW.compTransform);
+            double[,] globalTransformationMatrix = ConvertMatrixToDoubleArray(rootElement.compTransform);
 
-            double[] globalNormalYZ = { 1, 0, 0 };
-            double[] globalNormalXZ = { 0, 1, 0 };
-            double[] globalNormalXY = { 0, 0, 1 };
+            double[] globalNormalYZ = { globalTransformationMatrix[0, 0], globalTransformationMatrix[1, 0], globalTransformationMatrix[2, 0] };
+            double[] globalNormalXZ = { globalTransformationMatrix[0, 1], globalTransformationMatrix[1, 1], globalTransformationMatrix[2, 1] };
+            double[] globalNormalXY = { globalTransformationMatrix[0, 2], globalTransformationMatrix[1, 2], globalTransformationMatrix[2, 2] };
+
+
+            double[,] localTransformationMatrix = ConvertMatrixToDoubleArray(elementSW.compTransform);
 
             double[][] globalNormals = { globalNormalYZ, globalNormalXZ, globalNormalXY };
 

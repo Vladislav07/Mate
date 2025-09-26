@@ -1,4 +1,5 @@
-﻿using CodeStack.SwEx.PMPage.Attributes;
+﻿using CodeStack.SwEx.Common.Attributes;
+using CodeStack.SwEx.PMPage.Attributes;
 using CodeStack.SwEx.PMPage.Base;
 using CodeStack.SwEx.PMPage.Controls;
 using SolidWorks.Interop.sldworks;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Resources;
 
 
 namespace AddInPageMate
@@ -22,7 +24,7 @@ namespace AddInPageMate
    
     public class Model : INotifyPropertyChanged
     {
-        [SelectionBox(typeof(ComponentLevelFilter), swSelectType_e.swSelCOMPONENTS)]
+        [SelectionBox(1,typeof(ComponentLevelFilter), swSelectType_e.swSelCOMPONENTS)]
         [Description("Components")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
         [ControlOptions(height:120)]
@@ -42,20 +44,26 @@ namespace AddInPageMate
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Text1)));
             }
         }*/
-        [SelectionBox(typeof(ComponentBaseLevelFilter), swSelectType_e.swSelCOMPONENTS)]
+        [SelectionBox(2, typeof(ComponentBaseLevelFilter), swSelectType_e.swSelCOMPONENTS)]
         [Description("BaseComponent")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
    
         public Component2 baseComp { get; set; }
 
-        [ControlTag(nameof(Right))]
-        public bool Right { get; set; }
-        [ControlTag(nameof(Top))]
-        public bool Top { get; set; }
-        [ControlTag(nameof(Left))]
-        public bool Left { get; set; }
+        [IgnoreBinding]
+        public List<MateFeature> listMate {  get; set; }= new List<MateFeature>();
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+
+        public Action Button => OnButtonClick;
+
+        private void OnButtonClick()
+        {
+            listMate.ForEach(m => { Console.WriteLine(m.NameMate.ToString()); });   
+         
+        }
+
     }
     public class ComponentLevelFilter : SelectionCustomFilter<Component2>
     {
@@ -83,8 +91,8 @@ namespace AddInPageMate
         {
 
             Component2 c = selection;
-            int solveInt = c.Solving;
-            if (solveInt == 0 || solveInt == -1)
+            int solveInt = c.GetConstrainedStatus();
+            if (solveInt != 3 )
             {
                 
                 return false;
