@@ -63,20 +63,7 @@ namespace AddInPageMate
             }
             else
             {
-                double[] arr = new double[16];
-
-                arr[0] = 1; arr[1] = 0; arr[2] = 0;
-                arr[3] = 0; arr[4] = 1; arr[5] = 0;
-                arr[6] = 0; arr[7] = 0; arr[8] = 1;
-                arr[9] = 0; arr[10] = 0; arr[11] = 0;
-                arr[12] = 1;
-                arr[13] = 0; arr[14] = 0; arr[15] = 0;
-                string  nameBase = nameAssemble;
-                string[] planeBase = new string[3];
-                planeBase[0] = "Right";
-                planeBase[1] = "Top";
-                planeBase[2] = "Front";
-                rootElement = new ElementSW(nameBase, planeBase,arr);
+                rootElement = GetRootELemrnt();
             }
 
             foreach (Component2 item in childrens)
@@ -93,23 +80,78 @@ namespace AddInPageMate
             }
         }
 
+        private static ElementSW GetRootELemrnt()
+        {
+            ElementSW rootElement;
+            double[] arr = new double[16];
+
+            arr[0] = 1; arr[1] = 0; arr[2] = 0;
+            arr[3] = 0; arr[4] = 1; arr[5] = 0;
+            arr[6] = 0; arr[7] = 0; arr[8] = 1;
+            arr[9] = 0; arr[10] = 0; arr[11] = 0;
+            arr[12] = 1;
+            arr[13] = 0; arr[14] = 0; arr[15] = 0;
+            string nameBase = nameAssemble;
+            string[] planeBase = new string[3];
+            planeBase[0] = "Right";
+            planeBase[1] = "Top";
+            planeBase[2] = "Front";
+            rootElement = new ElementSW(nameBase, planeBase, arr);
+            return rootElement;
+        }
+
         private static void X_DeletingPairing(string nameMate)
         {
              swModel.ClearSelection2(true);
              boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
              swModel.EditSuppress2();
-            swAssemblyDoc.EditRebuild();
-            model.listMate.Add(new MateFeature(false, nameMate));
+             swAssemblyDoc.EditRebuild();
+             model.listMate.Add(new MateFeature(false, nameMate));
 
         }
 
         public static void CreatePairingMultyComp(ElementSW rootElement, List<ElementSW> listElement)
         {
-            foreach (ElementSW item in listElement)
+            listElement.ForEach(item => ExcludeBasePairings(rootElement, item));
+
+            if (!rootElement.GetStatus())
             {
-                CompLocationCalculation(rootElement, item); 
+
+                CompLocationCalculation(GetRootELemrnt(), rootElement);
             }
-           
+            listElement.ForEach(item => CompLocationCalculation(rootElement, item));
+ 
+        }
+
+        private static void ExcludeBasePairings(ElementSW rootElement, ElementSW item)
+        {
+            if(item.listFeatureMate == null)return;
+            foreach (Feature ft in item.listFeatureMate)
+            {
+                string tempRoot = rootElement.nameSwComponent;
+
+                    int pos = rootElement.nameSwComponent.IndexOf('@');
+                    if (pos != -1)
+                    {
+                       tempRoot = tempRoot.Substring(0, pos);
+                    }
+
+                Mate2 mate = (Mate2)ft.GetSpecificFeature2();
+                int nNumMateEnt = mate.GetMateEntityCount();
+
+                for (int i = 0; i < nNumMateEnt; i++)
+                {
+                    MateEntity2 entityMate = mate.MateEntity(i);
+                    Component2 referComp = entityMate.ReferenceComponent;
+
+                    if (referComp != null && referComp.Name2 == tempRoot)
+                    {
+                        X_DeletingPairing(ft.Name);
+                    }  
+                }
+
+              
+            }
         }
 
         public static void CompLocationCalculation(ElementSW rootElement, ElementSW childElement)
@@ -178,15 +220,14 @@ namespace AddInPageMate
             LocationAngleComp angleComp = (LocationAngleComp)childElement.CreateLocalComponent(1);
 
             List<double> arrayTransp=new List<double>();
-            arrayTransp.Add(childElement.matrixSw[0]);
-            arrayTransp.Add(childElement.matrixSw[3]);
-            arrayTransp.Add(childElement.matrixSw[6]);
-            arrayTransp.Add(childElement.matrixSw[1]);
-            arrayTransp.Add(childElement.matrixSw[4]);
-            arrayTransp.Add(childElement.matrixSw[7]);
-            arrayTransp.Add(childElement.matrixSw[2]);
-            arrayTransp.Add(childElement.matrixSw[5]);
-            arrayTransp.Add(childElement.matrixSw[8]);
+            for (int i = 0; i < 3; i++)
+            {
+                double[] orientation = (double[])childElement.listVector[i].ArrayData;
+                for (int j = 0; j < 3; j++)
+                {
+                    arrayTransp.Add(orientation[j]);
+                }
+            }
 
             foreach (int item in angleIndexMatrix) 
             {
@@ -301,20 +342,17 @@ namespace AddInPageMate
                 {
                     matefeature.Name = MateName;
                     string nameMate=matefeature.Name;
-                    model.listMate.Add(new MateFeature(false, nameMate));
-                    swAssemblyDoc.EditRebuild();
+                    model.listMate.Add(new MateFeature(true, nameMate));
+                    //swAssemblyDoc.
+                       
                 }
 
                if (mateError == 1) {
 
-                    Mate2 mate2 =(Mate2)matefeature.GetSpecificFeature2();
-                    int count = mate2.GetMateEntityCount();
-                    if (count == 2)
-                    {
-                        matefeature = null;
-                       
-                    }
-                 
+
+                    orientation.InvokeOverDefiningAssembly();
+
+
                 }
                 if(mateError == 5 )
                     {

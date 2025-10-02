@@ -60,7 +60,10 @@ namespace AddInPageMate
 
         private void OnButtonClick()
         {
-            listMate.ForEach(m => { Console.WriteLine(m.NameMate.ToString()); });   
+            listMate.ForEach(m => {
+                if (m.isBackMate) { }
+                else { }
+            });   
          
         }
 

@@ -149,7 +149,7 @@ namespace AddInPageMate
         public MathVector[] listVector;
         public double[] coord;
         public event Action<string> DeletingPairing;
-     
+        private Component2 component2=null;
 
         public ElementSW(string nameComp, string[] _planes, double[] _matrixSw)
         {
@@ -161,6 +161,7 @@ namespace AddInPageMate
 
         public ElementSW(Component2 comp)
         {
+            this.component2 = comp;
             nameSwComponent = comp.Name2;
             planes = GetPlanesComp(comp);
             compTransform = (MathTransform)comp.Transform2;       
@@ -170,11 +171,20 @@ namespace AddInPageMate
         }
         public ElementSW(Component2 comp, string nameRoot)
         {
+            this.component2 = comp;
             nameSwComponent = comp.Name2 + "@" + nameRoot;
             planes = GetPlanesComp(comp);
             compTransform = (MathTransform)comp.Transform2;
             matrixSw = (double[])compTransform.ArrayData;
             GetMate(comp);
+        }
+
+        public bool GetStatus()
+        {
+            if (component2 == null) return true;
+            int solveInt = component2.GetConstrainedStatus();
+            if (solveInt == 3)return true;
+            return false;
         }
 
         private void GetMate(Component2 swComp)
@@ -274,6 +284,7 @@ namespace AddInPageMate
             bool IsWarning;
             string nameFeature;
             int errorCode;
+            if (listFeatureMate==null) return;
             foreach (Feature feat in listFeatureMate)
             {
                 errorCode = feat.GetErrorCode2(out IsWarning);
