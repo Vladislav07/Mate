@@ -31,6 +31,7 @@ namespace AddInPageMate
         private static string nameAssemble;
         private static Component2 swRootComp;
         private static  Model model;
+        private static int CountMateToList;
 
         public static void SetSolidServise(ISldWorks _sldWorks)
         {
@@ -46,7 +47,9 @@ namespace AddInPageMate
             swConfMgr = (ConfigurationManager)swModel.ConfigurationManager;
             swConf = (Configuration)swConfMgr.ActiveConfiguration;
             swRootComp = (Component2)swConf.GetRootComponent();
-           
+            CountMateToList = 0;
+
+
         }
 
         public static void Proccesing(Model _model)
@@ -78,6 +81,7 @@ namespace AddInPageMate
             {
                 AddMate(item.listLocComp);
             }
+            model.ActionCountStorage.Push(CountMateToList);
         }
 
         private static ElementSW GetRootELemrnt()
@@ -106,7 +110,8 @@ namespace AddInPageMate
              boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
              swModel.EditSuppress2();
              swAssemblyDoc.EditRebuild();
-             model.listMate.Add(new MateFeature(false, nameMate));
+             model.listMate.Push(new MateFeature(false, nameMate));
+             CountMateToList++;
 
         }
 
@@ -114,11 +119,11 @@ namespace AddInPageMate
         {
             listElement.ForEach(item => ExcludeBasePairings(rootElement, item));
 
-            if (!rootElement.GetStatus())
+       /*     if (!rootElement.GetStatus())
             {
 
                 CompLocationCalculation(GetRootELemrnt(), rootElement);
-            }
+            }*/
             listElement.ForEach(item => CompLocationCalculation(rootElement, item));
  
         }
@@ -308,6 +313,7 @@ namespace AddInPageMate
             {
                 AddMateToAssemble(compLocal);    
             }
+           
             swAssemblyDoc.EditRebuild();
         }
         private static void AddMateToAssemble(LocationComponent orientation)
@@ -337,37 +343,37 @@ namespace AddInPageMate
         
                 matefeature = (Feature)swAssemblyDoc.AddMate4((int)orientation.mateType, (int)align, flipped, distance, distance,
                     distance, 0, 0, angle, angle, angle, false, false, out mateError);
-
+           
                 if (matefeature != null)
-                {
-                    matefeature.Name = MateName;
-                    string nameMate=matefeature.Name;
-                    model.listMate.Add(new MateFeature(true, nameMate));
-                    //swAssemblyDoc.
-                       
-                }
-
-               if (mateError == 1) {
-
-
-                    orientation.InvokeOverDefiningAssembly();
-
-
+                { 
+                    int A = model.ActionCountStorage.Count +1;
+                    int B = CountMateToList + 1;
+                    matefeature.Name = MateName + "-" + A  + "-" + B;
+                    string   nameMate=matefeature.Name;
+                    model.listMate.Push(new MateFeature(true, nameMate));
+                    CountMateToList++;
+                 
                 }
                 if(mateError == 5 )
                     {
                         orientation.InvokeOverDefiningAssembly();                
                     }
-                
-            }
-         
+
+                if (mateError == 1)
+                    {
+                     
+                    }
+                    else { 
+
+                      
+                    }                              
+            }        
             catch (Exception ex)
             {
                 Console.WriteLine(mateError.ToString() );  
                 Console.WriteLine(ex.Message);
             }
       
-
         }
         private static string GetNameAssemble(AssemblyDoc swAssemblyDoc)
         {
@@ -527,5 +533,18 @@ namespace AddInPageMate
             return new double[] { x, y, z };
         }
 
+        internal static void DeleteMate(string nameMate)
+        {
+            swModel.ClearSelection2(true);
+            boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+            swModel.EditDelete();
+        }
+
+        internal static void DispleyMate(string nameMate)
+        {
+            swModel.ClearSelection2(true);
+            boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
+            swModel.EditUnsuppress2();
+        }
     }
 }

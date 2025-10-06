@@ -29,21 +29,7 @@ namespace AddInPageMate
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
         [ControlOptions(height:120)]
         public List<Component2> components { get; set; } = new List<Component2>();
-       // private string m_Text1;
 
-    /*    [ControlOptions(backgroundColor: KnownColor.Yellow, textColor: KnownColor.Red)]
-        public string Text1
-        {
-            get
-            {
-                return m_Text1;
-            }
-            set
-            {
-                m_Text1 = value;
-                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Text1)));
-            }
-        }*/
         [SelectionBox(2, typeof(ComponentBaseLevelFilter), swSelectType_e.swSelCOMPONENTS)]
         [Description("BaseComponent")]
         [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
@@ -51,7 +37,9 @@ namespace AddInPageMate
         public Component2 baseComp { get; set; }
 
         [IgnoreBinding]
-        public List<MateFeature> listMate {  get; set; }= new List<MateFeature>();
+        public Stack<MateFeature> listMate {  get; set; }= new Stack<MateFeature>();
+        [IgnoreBinding]
+        public Stack<int> ActionCountStorage { get; set; } = new Stack<int>();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -60,11 +48,13 @@ namespace AddInPageMate
 
         private void OnButtonClick()
         {
-            listMate.ForEach(m => {
-                if (m.isBackMate) { }
-                else { }
-            });   
-         
+            int countItems = ActionCountStorage.Pop();
+            for (int i = 0; i < countItems; i++)
+            {
+                MateFeature m = listMate.Pop();
+                if (m.isBackMate) { SolidServise.DeleteMate(m.NameMate); }
+                else { SolidServise.DispleyMate(m.NameMate); }
+            }                 
         }
 
     }
@@ -79,7 +69,7 @@ namespace AddInPageMate
             {
               c.DeSelect();
               c = (Component2)c.GetParent();
-              c.Select2(false, -1);            
+              c.Select2(false, 1);            
                 return false;
             }
 
@@ -105,7 +95,7 @@ namespace AddInPageMate
             {
                 c.DeSelect();
                 c = (Component2)c.GetParent();
-                c.Select2(false, -1);
+                c.Select2(false, 2);
                 return false;
             }
 

@@ -287,14 +287,33 @@ namespace AddInPageMate
             if (listFeatureMate==null) return;
             foreach (Feature feat in listFeatureMate)
             {
+                if (feat.IsSuppressed()) continue;
                 errorCode = feat.GetErrorCode2(out IsWarning);
 
                 if (errorCode == 1 ||errorCode == 46 || errorCode == 47)
                 {
                     nameFeature=feat.Name;
                     DeletingPairing?.Invoke(nameFeature);
+                    continue;
                 }
-               
+
+                MateFeatureData mateFeatureData =(MateFeatureData) feat.GetDefinition();
+                int error=-1;
+                if (mateFeatureData != null)
+                {
+                    error = mateFeatureData.ErrorStatus;
+                }
+                switch (error)
+                {
+                    case 1:
+                        nameFeature = feat.Name;
+                        DeletingPairing?.Invoke(nameFeature);
+                        break;
+                    default:
+                        break;
+                }
+
+
             }
         }
     }
