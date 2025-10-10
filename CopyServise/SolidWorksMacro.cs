@@ -21,13 +21,13 @@ namespace CopyServise
         {
             int openDocErrors = 0;
             int openDocWarnings = 0;
-            swApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, false);
+           // swApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swStopDebuggingVstaOnExit, false);
             pm = new clsPropMgr(swApp);
-            pm.run += new Action<string[]>(pm_run);
-            pm.SelectPlane += new Action<string>(pm_SelectPlane);
-            pm.SelectPlaneComp += new Action<string[]>(pm_SelectPlaneComp);
+           // pm.run += new Action<string[]>(pm_run);
+           // pm.SelectPlane += new Action<string>(pm_SelectPlane);
+          //  pm.SelectPlaneComp += new Action<string[]>(pm_SelectPlaneComp);
             pm.Show();
-            service = new SolidService(swApp);
+          //  service = new SolidService(swApp);
 
 
 
@@ -77,7 +77,7 @@ namespace CopyServise
         {
             // service.AddPairing(obj);
             bool st = service.AddPairingMultyComp(obj);
-
+            
         }
 
         public SldWorks swApp;
