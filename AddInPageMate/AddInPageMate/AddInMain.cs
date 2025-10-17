@@ -35,13 +35,22 @@ namespace AddInPageMate
         public override bool OnConnect()
         {
             model = new Model();
+
             pageMate = new PropertyManagerPageEx<MatePmpHandler, Model>(App);
             AddCommandGroup<Commands_e>(ShowPmpPage);
             AddContextMenu<Commands_e>(ShowPmpPage);
             sldWorks = (ISldWorks)App;
+            pageMate.Handler.DataChanged += Handler_DataChanged1;
+        
             
             return true;
         }
+
+        private void Handler_DataChanged1()
+        {
+            if (model.groupPlane.Right == false) {  }
+        }
+
         public override bool OnDisconnect()
         {
             return base.OnDisconnect();
@@ -52,8 +61,13 @@ namespace AddInPageMate
             SolidServise.SetSolidServise(sldWorks);
             pageMate.Handler.Closed += Handler_Closed;
             pageMate.Handler.Closing += Handler_Closing;
-           
+            pageMate.Handler.DataChanged += Handler_DataChanged;
             pageMate.Show(model);
+        }
+
+        private void Handler_DataChanged()
+        {
+            
         }
 
         private void Handler_Closing(swPropertyManagerPageCloseReasons_e reason, CodeStack.SwEx.PMPage.Base.ClosingArg arg)
@@ -65,13 +79,13 @@ namespace AddInPageMate
         {
             if( reason== swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_Okay)
             {
-                if (model.components.Count == 0) return;
+                if (model.groupComp.components.Count == 0) return;
                 SolidServise.Proccesing(model);
             } 
             pageMate.Handler.Closing-= Handler_Closing;
             pageMate.Handler.Closed-= Handler_Closed;
-            model.components.Clear();
-            model.baseComp= null;
+            model.groupComp.components.Clear();
+            model.groupPlane.baseComp= null;
 
 
         }

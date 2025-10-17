@@ -32,6 +32,7 @@ namespace AddInPageMate
         private static Component2 swRootComp;
         private static  Model model;
         private static int CountMateToList;
+        private static bool[] IsRefPlane;
 
         public static void SetSolidServise(ISldWorks _sldWorks)
         {
@@ -48,7 +49,7 @@ namespace AddInPageMate
             swConf = (Configuration)swConfMgr.ActiveConfiguration;
             swRootComp = (Component2)swConf.GetRootComponent();
             CountMateToList = 0;
-
+            IsRefPlane=new  bool[3];
 
         }
 
@@ -56,19 +57,22 @@ namespace AddInPageMate
         {
             model = _model;
             List<ElementSW>listElement = new List<ElementSW>();
-            Component2 rootComponent=(Component2)model.baseComp;
-            List<Component2> childrens = model.components;
-            ElementSW rootElement;
+            Component2 rootComponent=(Component2)model.groupPlane.baseComp;
+            ElementSW rootElement = null;
             if (rootComponent != null)
             {
                 rootElement = new ElementSW(rootComponent, nameAssemble);
-            
             }
             else
             {
                 rootElement = GetRootELemrnt();
             }
 
+            IsRefPlane[0]=model.groupPlane.Right;
+            IsRefPlane[1]=model.groupPlane.Top;
+            IsRefPlane[2]=model.groupPlane.Left;
+
+            List<Component2> childrens = model.groupComp.components;         
             foreach (Component2 item in childrens)
             {
                 ElementSW x = new ElementSW(item);
@@ -77,11 +81,12 @@ namespace AddInPageMate
             }
 
             CreatePairingMultyComp(rootElement, listElement);
+
             foreach (ElementSW item in listElement)
             {
                 AddMate(item.listLocComp);
             }
-            model.ActionCountStorage.Push(CountMateToList);
+            model.groupButtonBack.ActionCountStorage.Push(CountMateToList);
         }
 
         private static ElementSW GetRootELemrnt()
@@ -110,7 +115,7 @@ namespace AddInPageMate
              boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
              swModel.EditSuppress2();
              swAssemblyDoc.EditRebuild();
-             model.listMate.Push(new MateFeature(false, nameMate));
+             model.groupButtonBack.listMate.Push(new MateFeature(false, nameMate));
              CountMateToList++;
 
         }
@@ -119,11 +124,7 @@ namespace AddInPageMate
         {
             listElement.ForEach(item => ExcludeBasePairings(rootElement, item));
 
-       /*     if (!rootElement.GetStatus())
-            {
-
-                CompLocationCalculation(GetRootELemrnt(), rootElement);
-            }*/
+  
             listElement.ForEach(item => CompLocationCalculation(rootElement, item));
  
         }
@@ -166,6 +167,7 @@ namespace AddInPageMate
             childElement.InitVector(rootElement.compTransform);
             for (int i = 0; i < 3; i++)
             {
+                if (IsRefPlane[i] == false) continue;
                 List<int> angleIndex = new List<int>();
                 
                 bool isAngle=false;
@@ -175,7 +177,7 @@ namespace AddInPageMate
                 l.PlanBaseComp = rootElement.planes[i];
                 l.TypeSelectBase = "PLANE";
                 l.mateType = swMateType_e.swMateDISTANCE;
-                isAngle = IsFlipedAndAlign(l, childElement.listVector[i], childElement.coord[i], rootElement.planes,
+                isAngle = IsFlipedAndAlign(l, childElement.listVector[i], childElement.coord[i], childElement.planes,
                      angleIndex);
                 if (!isAngle)
                 {
@@ -346,11 +348,11 @@ namespace AddInPageMate
            
                 if (matefeature != null)
                 { 
-                    int A = model.ActionCountStorage.Count +1;
+                    int A = model.groupButtonBack.ActionCountStorage.Count +1;
                     int B = CountMateToList + 1;
                     matefeature.Name = MateName + "-" + A  + "-" + B;
                     string   nameMate=matefeature.Name;
-                    model.listMate.Push(new MateFeature(true, nameMate));
+                    model.groupButtonBack.listMate.Push(new MateFeature(true, nameMate));
                     CountMateToList++;
                  
                 }
