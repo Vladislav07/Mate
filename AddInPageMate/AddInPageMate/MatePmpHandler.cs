@@ -11,6 +11,7 @@ using System.Runtime.InteropServices.ComTypes;
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Runtime.CompilerServices;
+using CodeStack.SwEx.PMPage.Controls;
 
 
 namespace AddInPageMate
@@ -18,6 +19,7 @@ namespace AddInPageMate
     [ComVisible(true)]
     public class MatePmpHandler : PropertyManagerPageHandlerEx
     {
+        
        
     }
 }

@@ -2,6 +2,8 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
@@ -14,9 +16,9 @@ public class PMPHandler : IPropertyManagerPage2Handler9
     ISldWorks iSwApp;
     SwAddin userAddin;
     UserPMPage ppage;
-   // ModelDoc2 modelDoc2;
-    string filePath;
+    ModelDoc2 modelDoc2;
     bool cancelled;
+    int isBase = 0;
 
     public PMPHandler(SwAddin addin, UserPMPage page)
     {
@@ -24,21 +26,43 @@ public class PMPHandler : IPropertyManagerPage2Handler9
         iSwApp = (ISldWorks)userAddin.SwApp;
         ppage = page;
         AddComps.m_swApp = (SldWorks)iSwApp;
-        
-    }
+
+        }
 
     //Implement these methods from the interface
     public void AfterClose()
     {
         if (!cancelled)
         {
-           // AddComps.AddCompAndMate(filePath);
+            int count= ppage.selComp.GetSelectedItemsCount();
+           // List<int> components = (List<int>)ppage.selComp.GetSelectedItems();
+            Model model;
+            switch (isBase)
+            {
+                case 0:
+                 //  model = new Model(0, components);
+                    break;
+                case 1:
+                    bool[] plane= new bool[3];
+                    plane[0] = ppage.Right.Checked;
+                    plane[1] = ppage.Top.Checked;
+                    plane[2] = ppage.Left.Checked;
+                   // model =new Model(0,components, plane);     
+                    break;
+                case 2:
+
+                    break;
+               
+            }
         }
     }
 
     public void OnCheckboxCheck(int id, bool status)
     {
-            MessageBox.Show("OnCheckboxCheck(int id, bool status" + id.ToString() + status.ToString());
+            // MessageBox.Show("OnCheckboxCheck(int id, bool status" + id.ToString() + status.ToString());
+     
+
+      
     }
 
     public void OnClose(int reason)
@@ -47,14 +71,14 @@ public class PMPHandler : IPropertyManagerPage2Handler9
         {
             cancelled = false;
            // filePath = ppage.textbox1.Text;
-            if (!System.IO.File.Exists(filePath))
+           /* if (!System.IO.File.Exists(filePath))
             {
                 iSwApp.SendMsgToUser2("Browse to a valid part first.",
                     (int)swMessageBoxIcon_e.swMbInformation, (int)swMessageBoxBtn_e.swMbOk);
                 //prevent the page from closing
                 COMException ex = new COMException("cancel close", 1);
                 throw ex;
-            }                
+            }  */              
         }
         else
         {
@@ -117,8 +141,12 @@ public class PMPHandler : IPropertyManagerPage2Handler9
 
     public void OnListboxSelectionChanged(int id, int item)
     {
-
-    }
+            //MessageBox.Show(id.ToString() + " - " + item.ToString());
+            short[] varArray = null;
+        
+           // varArray = (short[])ppage.selComp.GetSelectedItems();
+          
+        }
 
     public bool OnNextPage()
     {
@@ -137,35 +165,29 @@ public class PMPHandler : IPropertyManagerPage2Handler9
 
     public void OnOptionCheck(int id)
     {
-            int[] filter=null;
-            bool res;
-           
-            
-         /*   res = ppage.selBaseComp.SetSelectedItem(0, true);   
+           IPropertyManagerPageGroup basePlane=ppage.groupBasePlane;
+           IPropertyManagerPageGroup baseComp = ppage.groupBaseComp;
+  
             switch (id)
             {
-                case 15:
-                    string y = ppage.selBaseComp.ItemText[0];
-                   
+                case 9:
+                    basePlane.Visible = false;
+                    baseComp.Visible = false;
+                    isBase = 0;
                     break;
-                case 18:
-                  
-                    filter = new int[] { (int)swSelectType_e.swSelCOMPONENTS };
-                    ppage.selBaseComp.SetSelectionFilters(filter);
+                case 10:
+                    basePlane.Visible = true;
+                    baseComp.Visible = false;
+                    isBase = 1;
                     break;
-                case 16:
-      
-                    filter = new int[] { (int)swSelectType_e.swSelDATUMPLANES };
-                    ppage.selBaseComp.SetSelectionFilters(filter);
+                case 11:
+                    basePlane.Visible = false;
+                    baseComp.Visible = true;
+                    ppage.selBaseComp.SetSelectionFocus();
+                    ppage.selBaseComp.SetSelectedItem(0, false);
+                    isBase = 2;
                     break;
-                case 17:
-              
-                    filter = new int[] { (int)swSelectType_e.swSelFACES };
-                    ppage.selBaseComp.SetSelectionFilters(filter);
-                    break;
-                default:
-                    break;
-            }*/
+            }
     }
 
     public bool OnPreviousPage()
@@ -185,7 +207,7 @@ public class PMPHandler : IPropertyManagerPage2Handler9
 
     public void OnSelectionboxFocusChanged(int id)
     {
-            MessageBox.Show(id.ToString());
+          //  MessageBox.Show(id.ToString());
     }
 
     public void OnSelectionboxListChanged(int id, int item)

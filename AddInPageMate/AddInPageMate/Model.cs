@@ -10,7 +10,11 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Resources;
+
+using Xarial.VPages.Framework.Base;
+using static AddInPageMate.Model;
 using static System.Collections.Specialized.BitVector32;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace AddInPageMate
@@ -27,7 +31,7 @@ namespace AddInPageMate
     public class Model 
 
     {
-        public class GroupComp
+        public class GroupComp 
         {
 
             [SelectionBox(1,typeof(ComponentLevelFilter), swSelectType_e.swSelCOMPONENTS)]
@@ -35,8 +39,35 @@ namespace AddInPageMate
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
             [ControlOptions(height:120)]
             public List<Component2> components { get; set; } = new List<Component2>();
-            public bool AllComponentCuby {  get; set; }
-            public bool AllElementNoCuby { get; set; }
+
+            private bool allComp = false;
+            private bool allStand = false;
+            public bool AllComponentCuby
+            {
+                get
+                {
+                    return allComp;
+                }
+                set
+                {
+                    allComp = value;
+
+                }
+            }
+            public bool AllElementNoCuby
+            {
+                get
+                {
+                    return allStand;
+                }
+                set
+                {
+                    allStand = value;
+
+                }
+            }
+
+
         }
      
 
@@ -63,47 +94,120 @@ namespace AddInPageMate
             }
 
         }
+
+        public enum IsBase_e
+            {
+                GlobalCoordinate=0,
+                IsPlane=1,
+                OtherComponent=2
+            }
+
+
      
+
         public class GroupPlane
         {
+    
+
+            [OptionBox]
+            [ControlTag(nameof(Base))]
+            public IsBase_e Base {  get; set; } = IsBase_e.GlobalCoordinate;
+   
 
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectFaceSurface)]
             [ControlTag(nameof(Right))]
+            [DependentOn(typeof(EnableRightHandler), nameof(Base))]
             public bool Right { get; set; } = true;
-            
+
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectFaceSurface)]
             [ControlTag(nameof(Top))]
+            [DependentOn(typeof(EnableTopHandler), nameof(Base))]
             public bool Top { get; set; } = true;
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectFaceSurface)]
             [ControlTag(nameof(Left))]
-            public bool Left {  get; set; } = true;
-          
-            [SelectionBox(2, typeof(ComponentBaseLevelFilter), swSelectType_e.swSelCOMPONENTS)]
+            [DependentOn(typeof(EnableLeftHandler), nameof(Base))]
+            public bool Left { get; set; } = true;
+
+            [SelectionBox(8, typeof(ComponentBaseLevelFilter), swSelectType_e.swSelCOMPONENTS)]
             [Description("BaseComponent")]
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
-            public Component2 baseComp { get; set; }
+            [ControlTag(nameof(BaseComponent))]
+            [DependentOn(typeof(EnableDepHandler), nameof(Base))]
+            public Component2 BaseComponent { get; set; } 
           
-           
         }
+ 
 
         public GroupComp groupComp { get; set; }
+    
+         public GroupPlane groupPlane { get; set; }
 
-        public GroupPlane groupPlane { get; set; }
+
         public  GroupButtonBack groupButtonBack { get; set; }
 
     }
 
-
-    public class RefPlaneFilter : SelectionCustomFilter<RefPlane>
+    internal class EnableRightHandler : DependencyHandler
     {
-        protected override bool Filter(IPropertyManagerPageControlEx selBox, RefPlane selection, swSelectType_e selType, ref string itemText)
+        protected override void UpdateControlState(IPropertyManagerPageControlEx control, IPropertyManagerPageControlEx[] parents)
         {
-
-       
-            return true;
+            int v = (int)parents.First().GetValue();
+            if (v == 1)
+            {
+                control.Visible = true;
+            }
+            else
+            {
+                control.Visible = false;
+            }
         }
-
     }
+    internal class EnableTopHandler : DependencyHandler
+    {
+        protected override void UpdateControlState(IPropertyManagerPageControlEx control, IPropertyManagerPageControlEx[] parents)
+        {
+            int v = (int)parents.First().GetValue();
+            if (v == 1)
+            {
+                control.Visible = true;
+            }
+            else
+            {
+                control.Visible = false;
+            }
+        }
+    }
+    internal class EnableLeftHandler : DependencyHandler
+    {
+        protected override void UpdateControlState(IPropertyManagerPageControlEx control, IPropertyManagerPageControlEx[] parents)
+        {
+            int v = (int)parents.First().GetValue();
+            if (v == 1)
+            {
+                control.Visible = true;
+            }
+            else
+            {
+                control.Visible = false;
+            }
+        }
+    }
+    public class EnableDepHandler : DependencyHandler
+    {
+        protected override void UpdateControlState(IPropertyManagerPageControlEx control, IPropertyManagerPageControlEx[] parents)
+        {
+            int v = (int)parents.First().GetValue();
+            if(v== 2)
+            {
+                control.Visible = true;
+            }
+            else
+            {
+                control.Visible = false;
+            }
+        }
+    }
+
     public class ComponentLevelFilter : SelectionCustomFilter<Component2>
     {
         protected override bool Filter(IPropertyManagerPageControlEx selBox, Component2 selection, swSelectType_e selType, ref string itemText)
@@ -141,7 +245,7 @@ namespace AddInPageMate
             {
                 c.DeSelect();
                 c = (Component2)c.GetParent();
-                c.Select2(false, 2);
+                c.Select2(false, 8);
                 return false;
             }
 

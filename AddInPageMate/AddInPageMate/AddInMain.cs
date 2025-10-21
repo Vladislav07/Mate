@@ -13,6 +13,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using CodeStack.SwEx.PMPage.Controls;
+using System.Collections.Generic;
 
 namespace AddInPageMate
 {
@@ -22,8 +24,12 @@ namespace AddInPageMate
     public class AddInMain : SwAddInEx
     {
         private PropertyManagerPageEx<MatePmpHandler, Model> pageMate;
+        MatePmpHandler matePmpHandler = new MatePmpHandler();
+       
+
         private Model model;
         ISldWorks sldWorks;
+        UIHandler uiHandler;
         private enum Commands_e
         {
      
@@ -40,16 +46,12 @@ namespace AddInPageMate
             AddCommandGroup<Commands_e>(ShowPmpPage);
             AddContextMenu<Commands_e>(ShowPmpPage);
             sldWorks = (ISldWorks)App;
-            pageMate.Handler.DataChanged += Handler_DataChanged1;
-        
+          
             
             return true;
         }
 
-        private void Handler_DataChanged1()
-        {
-            if (model.groupPlane.Right == false) {  }
-        }
+    
 
         public override bool OnDisconnect()
         {
@@ -57,22 +59,33 @@ namespace AddInPageMate
         }
         private void ShowPmpPage(Commands_e obj)
         {
-           
+        
             SolidServise.SetSolidServise(sldWorks);
             pageMate.Handler.Closed += Handler_Closed;
             pageMate.Handler.Closing += Handler_Closing;
             pageMate.Handler.DataChanged += Handler_DataChanged;
+            
             pageMate.Show(model);
+            
+
         }
+
+     
 
         private void Handler_DataChanged()
         {
+          /*  if (uiHandler == null)
+            {
+              uiHandler = new UIHandler(pageMate);
+            }*/
+         
             
         }
 
         private void Handler_Closing(swPropertyManagerPageCloseReasons_e reason, CodeStack.SwEx.PMPage.Base.ClosingArg arg)
         {
-                   
+           
+            model.groupPlane.Base = Model.IsBase_e.GlobalCoordinate;
         }
 
         private void Handler_Closed(swPropertyManagerPageCloseReasons_e reason)
@@ -85,7 +98,7 @@ namespace AddInPageMate
             pageMate.Handler.Closing-= Handler_Closing;
             pageMate.Handler.Closed-= Handler_Closed;
             model.groupComp.components.Clear();
-            model.groupPlane.baseComp= null;
+            model.groupPlane.BaseComponent= null;
 
 
         }

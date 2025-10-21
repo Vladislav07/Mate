@@ -15,12 +15,12 @@ namespace MyMacroAddIn
 
         #region Property Manager Page Controls
         //Groups
-        IPropertyManagerPageGroup groupSelComp;
-        IPropertyManagerPageGroup groupBase;
+        public IPropertyManagerPageGroup groupSelComp;
+        public IPropertyManagerPageGroup groupBase;
+        public IPropertyManagerPageGroup groupBasePlane;
+        public IPropertyManagerPageGroup groupBaseComp;
 
         //Controls
-
-
         public IPropertyManagerPageSelectionbox selComp;
         public IPropertyManagerPageCheckbox AllComponents;
         public IPropertyManagerPageCheckbox AllStandart;
@@ -28,13 +28,23 @@ namespace MyMacroAddIn
         public IPropertyManagerPageCheckbox Top;
         public IPropertyManagerPageCheckbox Left;
         public IPropertyManagerPageSelectionbox selBaseComp;
+        public IPropertyManagerPageOption GlobalCoordinat;
+        public IPropertyManagerPageOption SelectPlane;
+        public IPropertyManagerPageOption OthersComponent;
 
         //Control IDs
         public const int groupSelCompID = 1;
         public const int groupBaseID = 2;
+        public const int groupBasePlaneID = 5;
+        public const int groupBaseCompID = 6;
 
         public const int AllComponentsID = 3;
         public const int AllStandartID = 4;
+
+        public const int GlobalCoordinatID = 9;
+        public const int SelectPlaneID = 10;
+        public const int OthersComponentID = 11;
+
         public const int RightID = 8;
         public const int TopID = 16;
         public const int LeftID = 32;
@@ -98,50 +108,6 @@ namespace MyMacroAddIn
                                             (int)swPropertyManagerPageMessageExpanded.swMessageBoxExpand,
                                             "Message");
 
-         /*   //Add the groups
-            options = (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded | 
-                      (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Visible;
-
-            group2 = (IPropertyManagerPageGroup)swPropertyPage.AddGroupBox(group2ID, "Add Component", options);
-
-    
-            //selection1
-            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Selectionbox;
-            align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
-            options = (int)swAddControlOptions_e.swControlOptions_Enabled |
-                      (int)swAddControlOptions_e.swControlOptions_Visible;
-
-            selection1 = (IPropertyManagerPageSelectionbox)group2.AddControl(selection1ID, controlType, "Select Circular Edges", 
-                align, options, "Select circular edges on flat faces where components will be added");
-            if (selection1 != null)
-            {
-                int[] filter = { (int)swSelectType_e.swSelEDGES };
-                selection1.Height = 50;
-                selection1.SetSelectionFilters(filter);
-            }
-
-            // Button
-            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Button;
-            align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
-            options = (int)swAddControlOptions_e.swControlOptions_Enabled |
-                    (int)swAddControlOptions_e.swControlOptions_Visible;
-
-            button1 = (IPropertyManagerPageButton)group2.AddControl2(buttonID1, controlType, "Browse...", 
-                align, options, "Browse to a part");
-
-            //label
-            group2.AddControl(100, 1, "File path", 1, 3, "");
-
-            //textbox1
-            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Textbox;
-            align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
-            options = (int)swAddControlOptions_e.swControlOptions_Enabled |
-                      (int)swAddControlOptions_e.swControlOptions_Visible;
-
-            textbox1 = (IPropertyManagerPageTextbox)group2.AddControl(textbox1ID, controlType, "File path", 
-                align, options, "File path");*/
-
-            //MyGroup1
             options = (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded |
                      (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Visible;
             groupSelComp = (IPropertyManagerPageGroup)swPropertyPage.AddGroupBox(groupSelCompID, "Add Components", options);
@@ -176,44 +142,93 @@ namespace MyMacroAddIn
             AllStandart = (IPropertyManagerPageCheckbox)groupSelComp.AddControl(AllStandartID, controlType, "Select All No Cuby",
              align, options, "Default");
 
-            //MyGroup2
+
+
+            //Group2
             options = (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded |
                      (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Visible;
             groupBase = (IPropertyManagerPageGroup)swPropertyPage.AddGroupBox(groupBaseID, "Define the Base", options);
 
-            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Selectionbox;
+            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Option;
             align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
             options = (int)swAddControlOptions_e.swControlOptions_Enabled |
                       (int)swAddControlOptions_e.swControlOptions_Visible;
-            selBaseComp = (IPropertyManagerPageSelectionbox)groupBase.AddControl(selBaseCompID, controlType, "Select Base Component",
-               align, options, "Select Base");
-            if (selBaseComp != null)
-            {
-                selBaseComp.SingleEntityOnly = true;                  
-            }
+
+            GlobalCoordinat = (IPropertyManagerPageOption)groupBase.AddControl(GlobalCoordinatID, controlType, "GlobalCoordinat",
+              align, options, "Default");
+
+            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Option;
+            align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
+            options = (int)swAddControlOptions_e.swControlOptions_Enabled |
+                      (int)swAddControlOptions_e.swControlOptions_Visible;
+
+            SelectPlane = (IPropertyManagerPageOption)groupBase.AddControl(SelectPlaneID, controlType, "SelectPlane",
+              align, options, "Default");
+
+            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Option;
+            align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
+            options = (int)swAddControlOptions_e.swControlOptions_Enabled |
+                      (int)swAddControlOptions_e.swControlOptions_Visible;
+
+            OthersComponent = (IPropertyManagerPageOption)groupBase.AddControl(OthersComponentID, controlType, "OthersComponent",
+              align, options, "Default");
+
+            GlobalCoordinat.Checked = true;
+
+           //pageSelectPlane
+
+           options = (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded |
+                   (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Visible;
+            groupBasePlane = (IPropertyManagerPageGroup)swPropertyPage.AddGroupBox(groupBaseID, "SELECT plane", options);
 
             controlType = (int)swPropertyManagerPageControlType_e.swControlType_Checkbox;
              align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
             options = (int)swAddControlOptions_e.swControlOptions_Enabled |
                       (int)swAddControlOptions_e.swControlOptions_Visible;
 
-            Right = (IPropertyManagerPageCheckbox)groupBase.AddControl(RightID, controlType, "IsRight",
+            Right = (IPropertyManagerPageCheckbox)groupBasePlane.AddControl(RightID, controlType, "IsRight",
               align, options, "Default");
 
             controlType = (int)swPropertyManagerPageControlType_e.swControlType_Checkbox;
             align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
             options = (int)swAddControlOptions_e.swControlOptions_Enabled |
                        (int)swAddControlOptions_e.swControlOptions_Visible;
-            Top = (IPropertyManagerPageCheckbox)groupBase.AddControl(TopID, controlType, "IsTop",
+            Top = (IPropertyManagerPageCheckbox)groupBasePlane.AddControl(TopID, controlType, "IsTop",
                align, options, "Default");
 
             controlType = (int)swPropertyManagerPageControlType_e.swControlType_Checkbox;
             align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
             options = (int)swAddControlOptions_e.swControlOptions_Enabled |
                       (int)swAddControlOptions_e.swControlOptions_Visible;
-            Left = (IPropertyManagerPageCheckbox)groupBase.AddControl(LeftID, controlType, "IsLeft",
+            Left = (IPropertyManagerPageCheckbox)groupBasePlane.AddControl(LeftID, controlType, "IsLeft",
             align, options, "Default");
 
+            Right.Checked = true;
+            Top.Checked = true;
+            Left.Checked = true;
+
+            groupBasePlane.Visible = false;
+
+            //OtherComponent
+
+            options = (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded | (int)swAddGroupBoxOptions_e.swGroupBoxOptions_Visible;
+            groupBaseComp = (IPropertyManagerPageGroup)swPropertyPage.AddGroupBox(groupBaseID, "SELECT plane", options);
+
+            controlType = (int)swPropertyManagerPageControlType_e.swControlType_Selectionbox;
+            align = (int)swPropertyManagerPageControlLeftAlign_e.swControlAlign_LeftEdge;
+            options = (int)swAddControlOptions_e.swControlOptions_Enabled |
+                      (int)swAddControlOptions_e.swControlOptions_Visible;
+            selBaseComp = (IPropertyManagerPageSelectionbox)groupBaseComp.AddControl(selBaseCompID, controlType, "Select Base Component",
+               align, options, "Select Base");
+            if (selBaseComp != null)
+            {
+                selBaseComp.SingleEntityOnly = true;
+                int[] filter = { (int)swSelectType_e.swSelCOMPONENTS };
+
+                selBaseComp.SetSelectionFilters(filter);
+
+            }
+            groupBaseComp.Visible = false;
 
         }
 

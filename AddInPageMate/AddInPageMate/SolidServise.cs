@@ -33,6 +33,7 @@ namespace AddInPageMate
         private static  Model model;
         private static int CountMateToList;
         private static bool[] IsRefPlane;
+        private static Model.IsBase_e isBase;
 
         public static void SetSolidServise(ISldWorks _sldWorks)
         {
@@ -56,21 +57,24 @@ namespace AddInPageMate
         public static void Proccesing(Model _model)
         {
             model = _model;
+            isBase = model.groupPlane.Base;
             List<ElementSW>listElement = new List<ElementSW>();
-            Component2 rootComponent=(Component2)model.groupPlane.baseComp;
+            
             ElementSW rootElement = null;
-            if (rootComponent != null)
+            if (isBase==Model.IsBase_e.GlobalCoordinate | isBase== Model.IsBase_e.IsPlane)
             {
-                rootElement = new ElementSW(rootComponent, nameAssemble);
+                rootElement = GetRootELemrnt();
+
             }
             else
             {
-                rootElement = GetRootELemrnt();
+                Component2 rootComponent=(Component2)model.groupPlane.BaseComponent;
+                rootElement = new ElementSW(rootComponent, nameAssemble);             
             }
 
-            IsRefPlane[0]=model.groupPlane.Right;
-            IsRefPlane[1]=model.groupPlane.Top;
-            IsRefPlane[2]=model.groupPlane.Left;
+                IsRefPlane[0]=model.groupPlane.Right;
+                IsRefPlane[1]=model.groupPlane.Top;
+                IsRefPlane[2]=model.groupPlane.Left;
 
             List<Component2> childrens = model.groupComp.components;         
             foreach (Component2 item in childrens)
