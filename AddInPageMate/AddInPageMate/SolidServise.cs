@@ -54,6 +54,32 @@ namespace AddInPageMate
 
         }
 
+        public static List<Component2> GetAllComponents()
+        {
+            object[] ChildComps;
+            Component2 swChildComp;
+            List<Component2> listChildComps;
+            ChildComps = (object[])swRootComp.GetChildren();
+            listChildComps = new List<Component2>();
+            for (int i = 0; i < ChildComps.Length; i++)
+            {
+                swChildComp = (Component2)ChildComps[i];
+                listChildComps.Add(swChildComp);
+
+            }
+            return listChildComps;
+        }
+
+        public static void ClearArea(List<Component2> list)
+        {
+            bool status = false;
+            foreach (Component2 comp in list)
+            {
+                swModel.DeSelectByID(comp.Name2, "COMPONENT", 0,0,0);
+            }
+        }
+
+
         public static void Proccesing(Model _model)
         {
             model = _model;

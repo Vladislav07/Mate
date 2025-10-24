@@ -31,17 +31,28 @@ namespace AddInPageMate
     public class Model 
 
     {
-        public class GroupComp 
+        public class GroupComp :INotifyPropertyChanged
         {
-
+            private List<Component2> _list;
             [SelectionBox(1,typeof(ComponentLevelFilter), swSelectType_e.swSelCOMPONENTS)]
             [Description("Components")]
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
             [ControlOptions(height:120)]
-            public List<Component2> components { get; set; } = new List<Component2>();
+            public List<Component2> components { 
+                get {
+                    return _list;
+                }
+
+                set { 
+                    _list = value;
+                    
+                } }
 
             private bool allComp = false;
             private bool allStand = false;
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
             public bool AllComponentCuby
             {
                 get
@@ -51,7 +62,18 @@ namespace AddInPageMate
                 set
                 {
                     allComp = value;
+                    if (allComp)
+                    {
+                        _list = SolidServise.GetAllComponents();
+                    }
+                    else
+                    {
+                        _list.Clear();
+                        SolidServise.ClearArea();
 
+
+                    }
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(components)));
                 }
             }
             public bool AllElementNoCuby
