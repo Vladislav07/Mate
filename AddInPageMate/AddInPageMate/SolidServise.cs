@@ -1,12 +1,13 @@
-﻿using System;
+﻿using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using SolidWorks.Interop.sldworks;
-using SolidWorks.Interop.swconst;
 
 namespace AddInPageMate
 {
@@ -54,28 +55,51 @@ namespace AddInPageMate
 
         }
 
-        public static List<Component2> GetAllComponents()
+        public static List<Component2> GetAllComponents(bool isCuby)
         {
             object[] ChildComps;
             Component2 swChildComp;
             List<Component2> listChildComps;
             ChildComps = (object[])swRootComp.GetChildren();
             listChildComps = new List<Component2>();
+            Regex regex = new Regex(@"^(CUBY)-(\d){8}");
+            bool isCubyComp = false;
             for (int i = 0; i < ChildComps.Length; i++)
-            {
+            {    
+                
                 swChildComp = (Component2)ChildComps[i];
-                listChildComps.Add(swChildComp);
+                isCubyComp= regex.IsMatch(swChildComp.Name2);
+                if (isCuby && isCubyComp)
+                {
+                   listChildComps.Add(swChildComp);
+                }
+                else if(!isCuby && !isCubyComp)
+                {
+                    listChildComps.Add(swChildComp);
+                }
+                
 
             }
             return listChildComps;
         }
 
-        public static void ClearArea(List<Component2> list)
+        public static void ClearArea(List<Component2> list, bool isCuby)
         {
             bool status = false;
+            Regex regex = new Regex(@"^(CUBY)-(\d){8}");
+            bool isCubyComp = false;
             foreach (Component2 comp in list)
             {
-                swModel.DeSelectByID(comp.Name2, "COMPONENT", 0,0,0);
+                isCubyComp = regex.IsMatch(comp.Name2);
+                if (isCuby && isCubyComp)
+                {
+                   status = swModel.DeSelectByID(comp.Name2, "COMPONENT", 0,0,0);
+                }
+                else if (!isCuby && !isCubyComp)
+                {
+                    status = swModel.DeSelectByID(comp.Name2, "COMPONENT", 0, 0, 0);
+                }
+
             }
         }
 
@@ -100,7 +124,7 @@ namespace AddInPageMate
 
                 IsRefPlane[0]=model.groupPlane.Right;
                 IsRefPlane[1]=model.groupPlane.Top;
-                IsRefPlane[2]=model.groupPlane.Left;
+                IsRefPlane[2]=model.groupPlane.Front;
 
             List<Component2> childrens = model.groupComp.components;         
             foreach (Component2 item in childrens)
@@ -116,7 +140,7 @@ namespace AddInPageMate
             {
                 AddMate(item.listLocComp);
             }
-            model.groupButtonBack.ActionCountStorage.Push(CountMateToList);
+           // model.groupButtonBack.ActionCountStorage.Push(CountMateToList);
         }
 
         private static ElementSW GetRootELemrnt()
@@ -145,14 +169,18 @@ namespace AddInPageMate
              boolstat = swDocExt.SelectByID2(nameMate, "MATE", 0, 0, 0, true, 1, null, (int)swSelectOption_e.swSelectOptionDefault);
              swModel.EditSuppress2();
              swAssemblyDoc.EditRebuild();
-             model.groupButtonBack.listMate.Push(new MateFeature(false, nameMate));
+            // model.groupButtonBack.listMate.Push(new MateFeature(false, nameMate));
              CountMateToList++;
 
         }
 
         public static void CreatePairingMultyComp(ElementSW rootElement, List<ElementSW> listElement)
         {
-            listElement.ForEach(item => ExcludeBasePairings(rootElement, item));
+            if(!(model.groupPlane.Base==Model.IsBase_e.IsPlane && (IsRefPlane[0]==false || IsRefPlane[1] == false || IsRefPlane[2] == false)))
+            {
+                listElement.ForEach(item => ExcludeBasePairings(rootElement, item));
+            }
+           
 
   
             listElement.ForEach(item => CompLocationCalculation(rootElement, item));
@@ -328,7 +356,7 @@ namespace AddInPageMate
                         loc.Align = swMateAlign_e.swMateAlignANTI_ALIGNED;
                         return true;
 
-                    case double val when val >= 0.01 && val <= 0.99 || val >= -0.99 && val <= -0.01:
+                    case double val when val >= 0.05 && val <= 0.95 || val >= -0.95 && val <= -0.05:
                         int index = i;
                         angleIndex.Add(index);
                         break;
@@ -377,13 +405,13 @@ namespace AddInPageMate
                     distance, 0, 0, angle, angle, angle, false, false, out mateError);
            
                 if (matefeature != null)
-                { 
-                    int A = model.groupButtonBack.ActionCountStorage.Count +1;
-                    int B = CountMateToList + 1;
-                    matefeature.Name = MateName + "-" + A  + "-" + B;
+                {
+                    // int A = model.groupButtonBack.ActionCountStorage.Count +1;
+                    // int B = CountMateToList + 1;
+                    matefeature.Name = MateName; //+ "-" + A  + "-" + B;
                     string   nameMate=matefeature.Name;
-                    model.groupButtonBack.listMate.Push(new MateFeature(true, nameMate));
-                    CountMateToList++;
+                   // model.groupButtonBack.listMate.Push(new MateFeature(true, nameMate));
+                   // CountMateToList++;
                  
                 }
                 if(mateError == 5 )

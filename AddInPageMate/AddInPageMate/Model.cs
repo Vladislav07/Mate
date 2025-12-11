@@ -38,16 +38,8 @@ namespace AddInPageMate
             [Description("Components")]
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
             [ControlOptions(height:120)]
-            public List<Component2> components { 
-                get {
-                    return _list;
-                }
-
-                set { 
-                    _list = value;
-                    
-                } }
-
+            public List<Component2> components {  get; set; }=new List<Component2>();
+     
             private bool allComp = false;
             private bool allStand = false;
 
@@ -64,16 +56,21 @@ namespace AddInPageMate
                     allComp = value;
                     if (allComp)
                     {
-                        _list = SolidServise.GetAllComponents();
+                        List<Component2> comp = SolidServise.GetAllComponents(true);
+                        if(comp != null && comp.Count > 0)
+                        {
+                          components.AddRange(comp);
+                          PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(components)));
+                        } 
+                       
                     }
                     else
                     {
-                        _list.Clear();
-                        SolidServise.ClearArea();
-
-
+                        SolidServise.ClearArea(components, true);
+                       // components.Clear();
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(components)));
                     }
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(components)));
+                    
                 }
             }
             public bool AllElementNoCuby
@@ -85,15 +82,36 @@ namespace AddInPageMate
                 set
                 {
                     allStand = value;
+                    if (allStand)
+                    {
+                        List<Component2> comp = SolidServise.GetAllComponents(false);
+                        if (comp != null && comp.Count > 0)
+                        {
+                            components.AddRange(comp);
+                            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(components)));
+                        }
+                        else
+                        {
+                            allStand = false;
+                        }
+                        
+                    }
+                    else
+                    {
+
+                        SolidServise.ClearArea(components, false);
+                       // components.Clear();
+                        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(components)));
+                    }
+                    
 
                 }
             }
 
-
         }
      
 
-        public class GroupButtonBack
+   /*     public class GroupButtonBack
         {  
             public Action Button => OnButtonClick;
             [IgnoreBinding]
@@ -115,7 +133,7 @@ namespace AddInPageMate
         
             }
 
-        }
+        }*/
 
         public enum IsBase_e
             {
@@ -125,17 +143,15 @@ namespace AddInPageMate
             }
 
 
-     
-
-        public class GroupPlane
+        public class GroupPlane : INotifyPropertyChanged
         {
     
-
+          
             [OptionBox]
             [ControlTag(nameof(Base))]
-            public IsBase_e Base {  get; set; } = IsBase_e.GlobalCoordinate;
+            public IsBase_e Base {  get; set; }= IsBase_e.GlobalCoordinate;
+        
    
-
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectFaceSurface)]
             [ControlTag(nameof(Right))]
             [DependentOn(typeof(EnableRightHandler), nameof(Base))]
@@ -146,26 +162,27 @@ namespace AddInPageMate
             [DependentOn(typeof(EnableTopHandler), nameof(Base))]
             public bool Top { get; set; } = true;
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectFaceSurface)]
-            [ControlTag(nameof(Left))]
+            [ControlTag(nameof(Front))]
             [DependentOn(typeof(EnableLeftHandler), nameof(Base))]
-            public bool Left { get; set; } = true;
+            public bool Front { get; set; } = true;
 
             [SelectionBox(8, typeof(ComponentBaseLevelFilter), swSelectType_e.swSelCOMPONENTS)]
             [Description("BaseComponent")]
             [ControlAttribution(swControlBitmapLabelType_e.swBitmapLabel_SelectComponent)]
             [ControlTag(nameof(BaseComponent))]
             [DependentOn(typeof(EnableDepHandler), nameof(Base))]
-            public Component2 BaseComponent { get; set; } 
-          
+            public Component2 BaseComponent { get; set; }
+
+            public event PropertyChangedEventHandler PropertyChanged;
         }
  
 
-        public GroupComp groupComp { get; set; }
+          public GroupComp groupComp { get; set; }
     
          public GroupPlane groupPlane { get; set; }
 
 
-        public  GroupButtonBack groupButtonBack { get; set; }
+       // public  GroupButtonBack groupButtonBack { get; set; }
 
     }
 
